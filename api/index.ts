@@ -5,7 +5,9 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 
-import messangerRouter from '../routes/messenger';
+import { VercelRequest, VercelResponse } from '@vercel/node';
+
+import messangerRouter from '../src/routes/messenger';
 
 dotenv.config();
 
@@ -20,4 +22,7 @@ app.get("/", (_req: Request, res: Response) => {
   res.send("Hello World From Server!");
 });
 
-export default app;
+
+export default function handler(req: VercelRequest, res: VercelResponse) {
+  res.status(200).json({ message: "Hello from Vercel serverless!" });
+}

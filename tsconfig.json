@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "es2017",
     "module": "commonjs",
-    "rootDir": "./src",
-    "strict": true,
     "esModuleInterop": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "rootDir": ".",
+    "strict": true,
+    "skipLibCheck": true
   },
-  "include": ["api", "src"]
+  "include": ["api/**/*.ts", "routes/**/*.ts"]
 }
