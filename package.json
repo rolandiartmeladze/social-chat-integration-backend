@@ -1,11 +1,11 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "server.ts",
+  "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/server.ts",
+    "dev": "ts-node dev.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@vercel/node": "^5.1.16",

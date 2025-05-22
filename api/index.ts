@@ -22,7 +22,12 @@ app.get("/", (_req: Request, res: Response) => {
   res.send("Hello World From Server!");
 });
 
+app.get('/api/hello', (req, res) => {
+  res.status(200).json({ message: 'Hello from Express!' });
+});
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   res.status(200).json({ message: "Hello from Vercel serverless!" });
 }
+
+export { app };
