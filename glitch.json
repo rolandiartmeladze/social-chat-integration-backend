@@ -1,0 +1,4 @@
+{
+  "install": "cd backend && pnpm install",
+  "start": "cd backend && pnpm run dev"
+}
