@@ -16,36 +16,32 @@ export default class MessengerController {
             } else {
                 res.sendStatus(403);
             }
+        } else {
+            res.sendStatus(400);
         }
     }
     static async recieveWebhook(req: Request, res: Response) {
         const body = req.body;
 
         if (body.object === 'page') {
-            body.entry.forEach((entry: any) => {
-                const webhookEvent = entry.messaging[0];
-                const senderId: string = webhookEvent.sender.id;
-                const message: string = webhookEvent.message.text;
+            for (const entry of body.entry) {
+                const messagingEvents = entry.messaging;
 
-                entry.messaging.forEach(async (event: any) => {
+                for (const event of messagingEvents) {
                     console.log('Messenger webhook event:', event);
-                    const senderId = event.sender.id;
-                    if (event.message && event.message.text) {
-                        const receivedText = event.message.text;
-                        await MessengerService.sendTextMessage(senderId, `text hear: ${receivedText}`);
-                    }
-                });
-                if (message) {
-                    console.log(`Received message from ${senderId}: ${message}`);
-                } else {
-                    console.log(`No message from ${senderId}`);
-                }
+                    const senderId = event.sender?.id;
+                    const messageText = event.message?.text;
 
-            });
+                    if (senderId && messageText) {
+                        console.log(`Received message from ${senderId}: ${messageText}`);                        
+                        await MessengerService.sendTextMessage(senderId, `Echo: ${messageText}`);
+                    }
+                }
+            }
+
             res.status(200).send('EVENT_RECEIVED');
         } else {
             res.sendStatus(404);
         }
     }
 }
-
