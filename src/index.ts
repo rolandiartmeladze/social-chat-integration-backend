@@ -5,6 +5,7 @@ import bodyParser from "body-parser";
 
 import messengerRouter from "./routes/messenger";
 import instagramRouter from "./routes/instagram";
+import telegramRouter from "./routes/telegram";
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(bodyParser.json());
 
 app.use("/messenger", messengerRouter);
 app.use("/instagram", instagramRouter);
+app.use('/webhook/telegram', telegramRouter);
 
 app.get("/", (_req, res) => {
   res.send("გამარჯობა Glitch-დან! This is a TypeScript + Node.js app.");
