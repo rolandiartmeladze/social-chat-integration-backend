@@ -1,4 +1,9 @@
 {
-  "install": "npm install",
-  "start": "npm run dev"
+  "install": {
+    "include": ["package.json"]
+  },
+  "restart": {
+    "include": ["src/**/*.ts", ".env"]
+  },
+  "throttle": 1000
 }
