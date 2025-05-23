@@ -18,7 +18,7 @@ app.use(bodyParser.json());
 
 app.use("/messenger", messengerRouter);
 app.use("/instagram", instagramRouter);
-app.use('/webhook/telegram', telegramRouter);
+app.use('/telegram', telegramRouter);
 
 app.get("/", (_req, res) => {
   res.send("გამარჯობა Glitch-დან! This is a TypeScript + Node.js app.");
