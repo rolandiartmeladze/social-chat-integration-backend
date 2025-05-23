@@ -1,4 +1,7 @@
+export const messages: { sender: string; text: string }[] = [];
+
 import { Request, Response } from 'express';
+
 import MessengerService from '../services/messengerService';
 
 export default class MessengerController {
@@ -12,36 +15,45 @@ export default class MessengerController {
         if (mode && token) {
             if (mode === 'subscribe' && token === VERIFY_TOKEN) {
                 console.log('WEBHOOK_VERIFIED');
+              
                 res.status(200).send(challenge);
             } else {
                 res.sendStatus(403);
             }
-        } else {
-            res.sendStatus(400);
         }
     }
-    static async recieveWebhook(req: Request, res: Response) {
-        const body = req.body;
 
-        if (body.object === 'page') {
-            for (const entry of body.entry) {
-                const messagingEvents = entry.messaging;
+static async recieveWebhook(req: Request, res: Response) {
+    const body = req.body;
 
-                for (const event of messagingEvents) {
-                    console.log('Messenger webhook event:', event);
-                    const senderId = event.sender?.id;
-                    const messageText = event.message?.text;
+    if (body.object === 'page') {
+        for (const entry of body.entry) {
+            const messagingEvents = entry.messaging;
 
-                    if (senderId && messageText) {
-                        console.log(`Received message from ${senderId}: ${messageText}`);                        
-                        await MessengerService.sendTextMessage(senderId, `Echo: ${messageText}`);
-                    }
+            for (const event of messagingEvents) {
+                const senderId = event.sender?.id;
+                const messageText = event.message?.text;
+
+                if (senderId && messageText) {
+                    console.log(`Received message from ${senderId}: ${messageText}`);
+                    
+                    messages.push({ sender: senderId, text: messageText });
+
+                    await MessengerService.sendTextMessage(senderId, `Echo: ${messageText}`);
                 }
             }
-
-            res.status(200).send('EVENT_RECEIVED');
-        } else {
-            res.sendStatus(404);
         }
+
+        res.status(200).send('EVENT_RECEIVED');
+    } else {
+        res.sendStatus(404);
     }
+  
+
+
+}
+static getMessages(req: Request, res: Response) {
+    res.status(200).json(messages);
+  }
+  
 }
