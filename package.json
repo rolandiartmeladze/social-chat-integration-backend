@@ -2,12 +2,13 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "dev": "ts-node dev.ts",
+"scripts": {
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "postinstall": "npm run build"
   },
-  "dependencies": {
+    "dependencies": {
     "@vercel/node": "^5.1.16",
     "axios": "^1.9.0",
     "body-parser": "^2.2.0",
