@@ -15,7 +15,7 @@ export default class MessengerController {
         if (mode && token) {
             if (mode === 'subscribe' && token === VERIFY_TOKEN) {
                 console.log('WEBHOOK_VERIFIED');
-              
+
                 res.status(200).send(challenge);
             } else {
                 res.sendStatus(403);
@@ -23,37 +23,57 @@ export default class MessengerController {
         }
     }
 
-static async recieveWebhook(req: Request, res: Response) {
-    const body = req.body;
+    static async recieveWebhook(req: Request, res: Response) {
+        const body = req.body;
 
-    if (body.object === 'page') {
-        for (const entry of body.entry) {
-            const messagingEvents = entry.messaging;
+        if (body.object === 'page') {
+            for (const entry of body.entry) {
+                const messagingEvents = entry.messaging;
 
-            for (const event of messagingEvents) {
-                const senderId = event.sender?.id;
-                const messageText = event.message?.text;
+                for (const event of messagingEvents) {
+                    const senderId = event.sender?.id;
+                    const messageText = event.message?.text;
 
-                if (senderId && messageText) {
-                    console.log(`Received message from ${senderId}: ${messageText}`);
-                    
-                    messages.push({ sender: senderId, text: messageText });
+                    if (senderId && messageText) {
+                        console.log(`Received message from ${senderId}: ${messageText}`);
 
-                    await MessengerService.sendTextMessage(senderId, `Echo: ${messageText}`);
+                        messages.push({ sender: senderId, text: messageText });
+
+                        await MessengerService.sendTextMessage(senderId, `Echo: ${messageText}`);
+                    }
                 }
             }
+
+            res.status(200).send('EVENT_RECEIVED');
+        } else {
+            res.sendStatus(404);
         }
 
-        res.status(200).send('EVENT_RECEIVED');
-    } else {
-        res.sendStatus(404);
+
+
     }
-  
 
+    static async sendMessageFromFrontend(req: Request, res: Response) {
+        const { sender, text } = req.body;
 
-}
-static getMessages(req: Request, res: Response) {
-    res.status(200).json(messages);
-  }
-  
+        if (!sender || !text) {
+            return res.status(400).json({ error: 'Sender ID and text are required.' });
+        }
+
+        try {
+            await MessengerService.sendTextMessage(sender, text);
+
+            messages.push({ sender, text });
+
+            res.status(200).json({ message: 'Message sent successfully.' });
+        } catch (error) {
+            console.error('Error sending message:', error);
+            res.status(500).json({ error: 'Failed to send message.' });
+        }
+    }
+
+    static getMessages(req: Request, res: Response) {
+        res.status(200).json(messages);
+    }
+
 }
