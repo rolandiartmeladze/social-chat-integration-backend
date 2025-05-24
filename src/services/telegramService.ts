@@ -1,27 +1,27 @@
-import axios from 'axios';
-const TELEGRAM_API = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
 type Message = {
-    sender: string;
-    text: string;
+  sender: string;
+  text: string;
+  timestamp?: string;
 };
+
 const messages: Message[] = [];
-export default class TelegramService {
-    static async sendMessage(chatId: number, text: string) {
-        try {
-            await axios.post(`${TELEGRAM_API}/sendMessage`, {
-                chat_id: chatId,
-                text: text,
-            });
-        } catch (error) {
-            console.error('Telegram API error:', error);
-        }
-    }
 
-    static addMessage(msg: Message) {
-        messages.push(msg);
-    }
+const TelegramService = {
+  addMessage: (message: Message) => {
+    messages.push({ ...message, timestamp: new Date().toISOString() });
+  },
+  getAllMessages: (): Message[] => {
+    return messages;
+  },
+  sendMessage: async (chatId: number, text: string) => {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text }),
+    });
+  },
+};
 
-    static getAllMessages(): Message[] {
-        return messages;
-    }
-}
+export default TelegramService;
