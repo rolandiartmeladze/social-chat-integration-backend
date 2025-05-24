@@ -5,19 +5,28 @@ export default class TelegramController {
   static async receiveWebhook(req: Request, res: Response) {
     const secret = req.header('X-Telegram-Bot-Api-Secret-Token');
     if (!secret || secret !== process.env.TELEGRAM_SECRET_TOKEN) {
-      return res.sendStatus(403);
+      console.warn("Invalid or missing secret token from request.");
+      return res.status(403).json({ error: 'Forbidden: Invalid secret token' });
     }
 
     const update = req.body;
-    if (update.message && update.message.text) {
+    const from = update?.message?.from;
+    const username = from?.username || 'Guest';
+
+    if (update.message?.text) {
       const chatId = update.message.chat.id;
       const text = update.message.text;
-      TelegramService.addMessage({ sender: update.message.from.username || "User", text });
+      const sender = from?.username || 'User';
 
-      await TelegramService.sendMessage(chatId, `თქვენ თქვით: ${text}`);
+      TelegramService.addMessage({ sender, text });
+      await TelegramService.sendMessage(chatId, `you text: ${text}`);
     }
 
-    res.sendStatus(200);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Webhook Body:", JSON.stringify(req.body, null, 2));
+    }
+
+    return res.status(200).json({ message: `Received message from ${username}` });
   }
 
   static getMessages(req: Request, res: Response) {
