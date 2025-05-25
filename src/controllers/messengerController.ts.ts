@@ -67,7 +67,6 @@ export default class MessengerController {
 
             res.status(200).json({ message: 'Message sent successfully.' });
         } catch (error) {
-            console.error('Error sending message:', error);
             res.status(500).json({ error: 'Failed to send message.' });
         }
     }
