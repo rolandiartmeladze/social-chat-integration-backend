@@ -1,3 +1,6 @@
+import axios from "axios";
+
+
 type Message = {
   sender: string;
   text: string;
@@ -5,14 +8,9 @@ type Message = {
 };
 
 const messages: Message[] = [];
+const TELEGRAM_API = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
 
 const TelegramService = {
-  addMessage: (message: Message) => {
-    messages.push({ ...message, timestamp: new Date().toISOString() });
-  },
-  getAllMessages: (): Message[] => {
-    return messages;
-  },
   sendMessage: async (chatId: number, text: string) => {
     const token = process.env.TELEGRAM_BOT_TOKEN;
     const url = `https://api.telegram.org/bot${token}/sendMessage`;
@@ -22,6 +20,17 @@ const TelegramService = {
       body: JSON.stringify({ chat_id: chatId, text }),
     });
   },
+
+  async getBotInfo() {
+    try {
+      const response = await axios.get(`${TELEGRAM_API}/getMe`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to get bot info:', error.message);
+      throw new Error('Telegram bot not reachable');
+    }
+  },
+
 };
 
 export default TelegramService;
