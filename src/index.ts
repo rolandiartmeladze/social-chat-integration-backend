@@ -24,6 +24,6 @@ app.get("/", (_req, res) => {
   res.send("გამარჯობა Glitch-დან! This is a TypeScript + Node.js app.");
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
 });
