@@ -1,9 +1,10 @@
-import { Router } from 'express';
+import express from "express";
 import TelegramController from '../controllers/telegramController';
 
-const router = Router();
+const router = express.Router();
 
-router.post('/', TelegramController.receiveWebhook);
-router.get('/messages', TelegramController.getMessages);
+router.post("/telegram/webhook", TelegramController.receiveWebhook);
+router.get("/telegram/messages", TelegramController.getMessages);
+router.get("/telegram/status", TelegramController.getBotStatus);
 
 export default router;
