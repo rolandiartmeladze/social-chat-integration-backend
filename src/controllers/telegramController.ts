@@ -18,35 +18,41 @@ export default class TelegramController {
     }
 
     const update = req.body;
+    const chatId = update?.message?.chat?.id;
     const from = update?.message?.from;
     const username = from?.username || from?.first_name || "Guest";
+    const text = update?.message?.text;
 
-    if (update.message?.text) {
-      const chatId = update.message.chat.id;
-      const text = update.message.text;
+    console.log(`📨 Message from ${username} (chatId: ${chatId}): ${text}`);
 
+    if (text && chatId) {
       const newMsg: Message = {
         sender: username,
         text,
-        timestamp: new Date(update.message.date * 1000).toISOString(),
+        timestamp: new Date((update.message.date || Date.now() / 1000) * 1000).toISOString(),
       };
 
       TelegramController.messages.push(newMsg);
-      await TelegramService.sendMessage(chatId, `შენ დაწერე: ${text}`);
+
+      try {
+        await TelegramService.sendMessage(chatId, `შენ დაწერე: ${text}`);
+      } catch (error) {
+        console.error("Failed to send message:", error);
+      }
     }
 
     if (process.env.NODE_ENV !== "production") {
-      console.log("Webhook Body:", JSON.stringify(req.body, null, 2));
+      console.log("📥 Webhook Body:", JSON.stringify(update, null, 2));
     }
 
-    return res.status(200).json({ message: `Received message from ${username}` });
+    return res.status(200).json({ message: `Received message from ${username}`, chatId });
   }
 
-  static getMessages(_req: Request, res: Response) {
+  static getMessages(req: Request, res: Response) {
     return res.status(200).json({ messages: TelegramController.messages });
   }
 
-  static async getBotStatus(req: Request, res: Response) {
+  static async getBotStatus(_req: Request, res: Response) {
     try {
       const data = await TelegramService.getBotInfo();
       if (data.ok) {
@@ -55,10 +61,7 @@ export default class TelegramController {
           bot: data.result,
         });
       } else {
-        return res.status(500).json({
-          status: "error",
-          error: data,
-        });
+        return res.status(500).json({ status: "error", error: data });
       }
     } catch (err) {
       return res.status(500).json({
