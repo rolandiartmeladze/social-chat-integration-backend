@@ -1,78 +1,86 @@
-export const messages: { sender: string; text: string }[] = [];
-
 import { Request, Response } from 'express';
-
 import MessengerService from '../services/messengerService';
 
+type Message = { sender: string; text: string; timestamp: string };
+
+export const messages: Message[] = [];
+
 export default class MessengerController {
+  static verifyWebhook(req: Request, res: Response) {
+    const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'your_verify_token';
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
 
-    static verifyWebhook(req: Request, res: Response) {
-        const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "your_verify_token";
-        const mode = req.query['hub.mode'];
-        const token = req.query['hub.verify_token'];
-        const challenge = req.query['hub.challenge'];
-
-        if (mode && token) {
-            if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-                console.log('WEBHOOK_VERIFIED');
-
-                res.status(200).send(challenge);
-            } else {
-                res.sendStatus(403);
-            }
-        }
+    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+      console.log('WEBHOOK_VERIFIED');
+      return res.status(200).send(challenge);
     }
 
-    static async recieveWebhook(req: Request, res: Response) {
-        const body = req.body;
+    return res.sendStatus(403);
+  }
 
-        if (body.object === 'page') {
-            for (const entry of body.entry) {
-                const messagingEvents = entry.messaging;
+  static async receiveWebhook(req: Request, res: Response) {
+    const body = req.body;
 
-                for (const event of messagingEvents) {
-                    const senderId = event.sender?.id;
-                    const messageText = event.message?.text;
+    if (body.object !== 'page') return res.sendStatus(404);
 
-                    if (senderId && messageText) {
-                        console.log(`Received message from ${senderId}: ${messageText}`);
+    for (const entry of body.entry || []) {
+      const messagingEvents = entry.messaging || [];
 
-                        messages.push({ sender: senderId, text: messageText });
+      for (const event of messagingEvents) {
+        const senderId = event.sender?.id;
+        const text = event.message?.text;
 
-                        await MessengerService.sendTextMessage(senderId, `Echo: ${messageText}`);
-                    }
-                }
-            }
+        if (senderId && text) {
+          console.log(`Message from ${senderId}: ${text}`);
 
-            res.status(200).send('EVENT_RECEIVED');
-        } else {
-            res.sendStatus(404);
+          messages.push({
+            sender: senderId,
+            text,
+            timestamp: new Date().toISOString(),
+          });
+
+          try {
+            await MessengerService.sendMessage(senderId, `შენ დაწერე: ${text}`);
+          } catch (err) {
+            console.error('Failed to respond to user:', err);
+          }
         }
-
-
-
+      }
     }
 
-    static async sendMessageFromFrontend(req: Request, res: Response) {
-        const { sender, text } = req.body;
+    return res.status(200).send('EVENT_RECEIVED');
+  }
 
-        if (!sender || !text) {
-            return res.status(400).json({ error: 'Sender ID and text are required.' });
-        }
+  static async sendMessageFromFrontend(req: Request, res: Response) {
+    const { sender, text } = req.body;
 
-        try {
-            await MessengerService.sendTextMessage(sender, text);
-
-            messages.push({ sender, text });
-
-            res.status(200).json({ message: 'Message sent successfully.' });
-        } catch (error) {
-            res.status(500).json({ error: 'Failed to send message.' });
-        }
+    if (!sender || !text) {
+      return res.status(400).json({ error: 'Sender ID and text are required.' });
     }
 
-    static getMessages(req: Request, res: Response) {
-        res.status(200).json(messages);
+    try {
+      await MessengerService.sendMessage(sender, text);
+      messages.push({ sender, text, timestamp: new Date().toISOString() });
+      res.status(200).json({ message: 'Message sent successfully.' });
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      res.status(500).json({ error: 'Failed to send message.' });
     }
+  }
 
+  static getMessages(_req: Request, res: Response) {
+    return res.status(200).json({ messages });
+  }
+
+  static async getConversations(_req: Request, res: Response) {
+    try {
+      const conversations = await MessengerService.getConversations();
+      res.status(200).json({ conversations });
+    } catch (error: any) {
+      console.error('Error getting conversations:', error.message);
+      res.status(500).json({ error: 'Failed to fetch conversations.' });
+    }
+  }
 }
