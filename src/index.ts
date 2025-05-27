@@ -21,7 +21,7 @@ app.use("/instagram", instagramRouter);
 app.use('/telegram', telegramRouter);
 
 app.get("/", (_req, res) => {
-  res.send("გამარჯობა Glitch-დან! This is a TypeScript + Node.js app.");
+  res.send("გამარჯობა  მოგესალმებით Backend სერვერიდან რომელიც აბრუნებს შეტყობინებებს და მესენჯერ, ინსტაგრამ, ტელეგრამ  ჩათებიდან და საშუალებას აძლებს მომხმარებელს გაგზავნოს შესაბამისი მოთხოვნა გვერდზე --  TypeScript + Node.js app.");
 });
 
 app.listen(PORT, async () => {
