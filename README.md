@@ -19,15 +19,6 @@ This is the backend part of a full-stack web application built with **Node.js**,
 
 ## 📁 Project Structure
 
-backend/
-├── src/
-│ ├── index.ts # Entry point
-│ ├── routes/ # API routes
-│ ├── controllers/ # Logic and handlers
-│ └── services/ # Platform-specific integrations
-├── dist/ # Compiled JS files
-├── package.json
-└── tsconfig.json
 
 ---
 
@@ -66,7 +57,7 @@ backend/
 git clone <repo-url>
 
 # Navigate to backend folder
-cd backend
+cd <repo name>
 
 # Install dependencies
 npm install
