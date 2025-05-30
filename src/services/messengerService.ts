@@ -3,16 +3,13 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const PAGE_ACCESS_TOKEN = process.env.PROFILE_TOKEN;
-const FB_API_URL = process.env.FB_API_URL || "https://graph.facebook.com/v22.0/";
-const CONVERSATIONS_ENDPOINT = `${FB_API_URL}me/conversations`;
-const MESSAGES_ENDPOINT = `${FB_API_URL}me/messages`;
+const PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
 
 export default class MessengerService {
   static async sendMessage(recipientId: string, text: string) {
     try {
       await axios.post(
-        MESSAGES_ENDPOINT,
+        `${process.env.FB_API_URL}/me/messages`,
         {
           messaging_type: "RESPONSE",
           recipient: { id: recipientId },
@@ -35,7 +32,7 @@ export default class MessengerService {
     try {
       if (!PAGE_ACCESS_TOKEN) throw new Error("PAGE_ACCESS_TOKEN is missing");
 
-      const response = await axios.get(CONVERSATIONS_ENDPOINT, {
+      const response = await axios.get(`${process.env.FB_API_URL}/me/conversations`, {
         params: {
           access_token: PAGE_ACCESS_TOKEN,
           fields: "participants",
@@ -44,7 +41,7 @@ export default class MessengerService {
 
       const conversations = response.data.data.map((conv: any) => {
         const participants = conv.participants?.data || [];
-
+        console.log(participants.name);
         const page = participants.find(
           (p: any) => p.name?.includes("RMdor") || p.name?.includes("Gorespo")
         );
@@ -57,7 +54,7 @@ export default class MessengerService {
         };
       });
 
-      console.log("Conversations fetched:", conversations.length);
+      console.log(`თქვენ გაქვთ ${conversations.length} აქტიური საუბარი.`);
       return conversations;
     } catch (error: any) {
       console.error(
@@ -68,12 +65,12 @@ export default class MessengerService {
     }
   }
 
-  static async getMessagesFromConversation(conversationId: string) {
+  static async getChat(conversationId: string) {
     try {
-      if (!PAGE_ACCESS_TOKEN) throw new Error("PAGE_ACCESS_TOKEN is missing");
+      if (!PAGE_ACCESS_TOKEN) throw new Error("FB_PAGE_ACCESS_TOKEN is missing");
 
       const response = await axios.get(
-        `${FB_API_URL}${conversationId}/messages`,
+        `${process.env.FB_API_URL}/${conversationId}/messages`,
         {
           params: {
             access_token: PAGE_ACCESS_TOKEN,
@@ -90,14 +87,10 @@ export default class MessengerService {
         createdTime: msg.created_time,
       }));
 
-      console.log(`Messages fetched from conversation t_1056375546391359:`, messages.length);
-
+      console.log(`Messages fetched from conversation:`, messages.length);
       return messages;
     } catch (error: any) {
-      console.error(
-        "Error fetching messages from conversation:",
-        error?.response?.data || error.message
-      );
+      console.error("Error fetching messages from conversation:", error?.response?.data || error.message);
       throw new Error("Failed to fetch messages from conversation");
     }
   }

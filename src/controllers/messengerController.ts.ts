@@ -7,7 +7,7 @@ export const messages: Message[] = [];
 
 export default class MessengerController {
   static verifyWebhook(req: Request, res: Response) {
-    const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "your_verify_token";
+    const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "messenger_API";
     const mode = req.query["hub.mode"];
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];
@@ -20,29 +20,29 @@ export default class MessengerController {
     return res.sendStatus(403);
   }
 
- static async receiveWebhook(req: Request, res: Response) {
-  
-  const body = req.body;
-  if (body.object !== "page") return res.sendStatus(404);
+  static async receiveWebhook(req: Request, res: Response) {
 
-  for (const entry of body.entry || []) {
-    for (const event of entry.messaging || []) {
-      const senderId = event.sender?.id;
-      const text = event.message?.text;
-      console.log(`📨 Received: ${text} from ${senderId}`);
+    const body = req.body;
+    if (body.object !== "page") return res.sendStatus(404);
 
-      if (senderId && text) {
-        messages.push({
-          sender: senderId,
-          text,
-          timestamp: new Date().toISOString(),
-        });
+    for (const entry of body.entry || []) {
+      for (const event of entry.messaging || []) {
+        const senderId = event.sender?.id;
+        const text = event.message?.text;
+        console.log(`📨 Received: ${text} from ${senderId}`);
+        console.log(body);
+        if (senderId && text) {
+          messages.push({
+            sender: senderId,
+            text,
+            timestamp: new Date().toISOString(),
+          });
+        }
       }
     }
-  }
 
-  return res.status(200).send("EVENT_RECEIVED");
-}
+    return res.status(200).send("EVENT_RECEIVED");
+  }
 
   static getMessages(_req: Request, res: Response) {
     return res.status(200).json({ messages });
@@ -77,28 +77,20 @@ export default class MessengerController {
     }
   }
 
-  static async getMessagesFromConversation(req: Request, res: Response) {
+  static async getChat(req: Request, res: Response) {
     try {
-      const conversations = await MessengerService.getConversations();
+      const conversationId = req.params.id;
 
-      const firstConversationId = conversations[0]?.conversationId;
-
-      if (!firstConversationId) {
-        return res.status(404).json({ error: "Conversation not found" });
+      if (!conversationId) {
+        return res.status(400).json({ error: "Conversation ID is required" });
       }
 
-      const messages = await MessengerService.getMessagesFromConversation(
-        firstConversationId
-      );
+      const messages = await MessengerService.getChat(conversationId);
 
-      return res
-        .status(200)
-        .json({ conversationId: firstConversationId, messages });
+      return res.status(200).json({ conversationId, messages });
     } catch (error: any) {
-      console.error("❌ Error in Controller:", error.message);
-      return res
-        .status(500)
-        .json({ error: "Failed to get messages from conversation" });
+      console.error("Error in Controller:", error.message);
+      return res.status(500).json({ error: "Failed to get messages from conversation" });
     }
   }
 }
