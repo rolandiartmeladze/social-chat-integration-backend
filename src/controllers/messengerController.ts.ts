@@ -85,9 +85,9 @@ export default class MessengerController {
         return res.status(400).json({ error: "Conversation ID is required" });
       }
 
-      const messages = await MessengerService.getChat(conversationId);
+      const conversation = await MessengerService.getChat(conversationId);
 
-      return res.status(200).json({ conversationId, messages });
+      return res.status(200).json({ conversation });
     } catch (error: any) {
       console.error("Error in Controller:", error.message);
       return res.status(500).json({ error: "Failed to get messages from conversation" });

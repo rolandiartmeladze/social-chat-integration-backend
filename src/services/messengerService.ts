@@ -1,5 +1,6 @@
 import axios from "axios";
 import dotenv from "dotenv";
+import { User, Conversation, Message } from "../types";
 
 dotenv.config();
 
@@ -29,79 +30,77 @@ export default class MessengerService {
   }
 
   static async getConversations() {
-  try {
-    if (!PAGE_ACCESS_TOKEN) throw new Error("PAGE_ACCESS_TOKEN is missing");
-
-    const response = await axios.get(
-      `${process.env.FB_API_URL}/me/conversations`,
-      {
-        params: {
-          access_token: PAGE_ACCESS_TOKEN,
-          fields: "participants",
-        },
-      }
-    );
-
-const conversations = await Promise.all(
-  response.data.data.map(async (conv: any) => {
-    const participants = conv.participants?.data || [];
-
-    const page = participants.find(
-      (p: any) => p.name?.includes("RMdor") || p.name?.includes("Gorespo")
-    );
-    const user = participants.find((p: any) => p.name !== page?.name);
-
-    const userAvatar = user?.id
-      ? `https://graph.facebook.com/${user.id}/picture?type=normal`
-      : null;
-
-    let lastMessage = "";
     try {
-      const msgRes = await axios.get(
-        `${process.env.FB_API_URL}/${conv.id}/messages`,
+      if (!PAGE_ACCESS_TOKEN) throw new Error("PAGE_ACCESS_TOKEN is missing");
+
+      const response = await axios.get(
+        `${process.env.FB_API_URL}/me/conversations`,
         {
           params: {
             access_token: PAGE_ACCESS_TOKEN,
-            fields: "message,created_time,from",
-            limit: 1,
+            fields: "participants",
           },
         }
       );
 
-      if (msgRes.data.data.length > 0) {
-        lastMessage = msgRes.data.data[0].message || "";
-      }
-    } catch (msgErr) {
-      console.warn("Couldn't fetch last message for:", conv.id);
+      const conversations = await Promise.all(
+        response.data.data.map(async (conv: any) => {
+          const participants = conv.participants?.data || [];
+
+          const page = participants.find(
+            (p: any) => p.name?.includes("RMdor") || p.name?.includes("Gorespo")
+          );
+          const user = participants.find((p: any) => p.name !== page?.name);
+
+          const userAvatar = user?.id
+            ? `https://graph.facebook.com/${user.id}/picture?type=normal`
+            : null;
+
+          let lastMessage = "";
+          try {
+            const msgRes = await axios.get(
+              `${process.env.FB_API_URL}/${conv.id}/messages`,
+              {
+                params: {
+                  access_token: PAGE_ACCESS_TOKEN,
+                  fields: "message,created_time,from",
+                  limit: 1,
+                },
+              }
+            );
+
+            if (msgRes.data.data.length > 0) {
+              lastMessage = msgRes.data.data[0].message || "";
+            }
+          } catch (msgErr) {
+            console.warn("Couldn't fetch last message for:", conv.id);
+          }
+
+          return {
+            conversationId: conv.id,
+            user: user?.name || "Unknown User",
+            avatar: userAvatar,
+            page: page?.name || "Unknown Page",
+            lastMessage,
+          };
+        })
+      );
+
+      console.log(`თქვენ გაქვთ ${conversations.length} აქტიური საუბარი.`);
+      return conversations;
+    } catch (error: any) {
+      console.error(
+        "Error fetching conversations:",
+        error?.response?.data || error.message
+      );
+      throw new Error("Failed to fetch conversations");
     }
-
-    return {
-      conversationId: conv.id,
-      user: user?.name || "Unknown User",
-      avatar: userAvatar,
-      page: page?.name || "Unknown Page",
-      lastMessage,
-    };
-  })
-);
-
-
-    console.log(`თქვენ გაქვთ ${conversations.length} აქტიური საუბარი.`);
-    return conversations;
-  } catch (error: any) {
-    console.error(
-      "Error fetching conversations:",
-      error?.response?.data || error.message
-    );
-    throw new Error("Failed to fetch conversations");
   }
-}
 
-  static async getChat(conversationId: string) {
+  static async getChat(conversationId: string): Promise<Conversation> {
+    if (!PAGE_ACCESS_TOKEN) throw new Error("FB_PAGE_ACCESS_TOKEN is missing");
+
     try {
-      if (!PAGE_ACCESS_TOKEN)
-        throw new Error("FB_PAGE_ACCESS_TOKEN is missing");
-
       const response = await axios.get(
         `${process.env.FB_API_URL}/${conversationId}/messages`,
         {
@@ -113,15 +112,68 @@ const conversations = await Promise.all(
         }
       );
 
-      const messages = response.data.data.map((msg: any) => ({
-        id: msg.id,
-        text: msg.message,
-        from: msg.from?.name || "Unknown",
-        createdTime: msg.created_time,
-      }));
+      const messagesRaw = response.data.data;
+      const avatarCache = new Map<string, string>();
 
-      console.log(`Messages fetched from conversation:`, messages.length);
-      return messages;
+      const messages: Message[] = await Promise.all(
+        messagesRaw.map(async (msg: any): Promise<Message> => {
+          const senderId = msg.from?.id;
+          const senderName = msg.from?.name || "Unknown";
+
+          let avatarUrl: string = avatarCache.get(senderId) || "";
+
+          if (!avatarUrl) {
+            try {
+              const res = await axios.get(
+                `https://graph.facebook.com/${senderId}`,
+                {
+                  params: {
+                    fields: "picture",
+                    access_token: PAGE_ACCESS_TOKEN,
+                  },
+                }
+              );
+              avatarUrl = res.data.picture?.data?.url || "";
+            } catch {
+              avatarUrl = "";
+            }
+            avatarCache.set(senderId, avatarUrl);
+          }
+          const sender: User = {
+            id: senderId,
+            name: senderName,
+            avatarUrl,
+          };
+
+          return {
+            id: msg.id,
+            sender,
+            text: msg.message || "",
+            timestamp: msg.created_time,
+            read: false,
+          };
+        })
+      );
+
+      const participantsMap = new Map<string, User>();
+      messages.forEach((msg) => {
+        if (!participantsMap.has(msg.sender.id)) {
+          participantsMap.set(msg.sender.id, msg.sender);
+        }
+      });
+
+      const participants: User[] = Array.from(participantsMap.values());
+
+      const lastUpdated =
+        messages.length > 0 ? messages[0].timestamp : new Date().toISOString();
+
+      return {
+        id: conversationId,
+        participants,
+        messages,
+        lastUpdated,
+        unreadCount: messages.filter((m) => !m.read).length,
+      };
     } catch (error: any) {
       console.error(
         "Error fetching messages from conversation:",
