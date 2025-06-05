@@ -60,8 +60,9 @@ export default class MessengerService {
 
           const page = participants.find((p: any) => p.id === pageId);
           const user = participants.find((p: any) => p.id !== page?.id);
-          const userAvatar = await getUserAvatar(user.id, PAGE_ACCESS_TOKEN!);
-
+          const userAvatar = user?.id
+            ? await getUserAvatar(user.id, PAGE_ACCESS_TOKEN!): "";
+            
           let lastMessage = "";
           try {
             const msgRes = await axios.get(
@@ -89,7 +90,7 @@ export default class MessengerService {
               name: user?.name || 'Unknown',
               avatar: userAvatar,
             },
-            page: page.name,
+            page: page?.name,
             lastMessage,
           };
         })
