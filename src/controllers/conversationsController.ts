@@ -17,6 +17,10 @@ export const getAllConversations = async (_req: Request, res: Response) => {
       ...telegramConvs.map(c => ({ ...c, platform: "telegram" })),
     ];
 
+    allConversations.sort((a, b) => {
+      return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+    });
+
     res.status(200).json({ conversations: allConversations });
   } catch (error: any) {
     console.error("Error fetching conversations:", error.message || error);
