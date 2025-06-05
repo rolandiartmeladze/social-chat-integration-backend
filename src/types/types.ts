@@ -35,17 +35,5 @@ export interface Conversation {
     participants: User[];
     messages: Message[];
     lastUpdated: string;
-    unreadCount?: number;
 }
 
-// export interface Conversation {
-//   conversationId: string;
-//   user: {
-//     id?: string;
-//     name: string;
-//     avatar?: string | null;
-//   };
-//   lastMessage?: string;
-//   page?: string;
-//   source: "messenger" | "instagram" | "telegram";
-// }
