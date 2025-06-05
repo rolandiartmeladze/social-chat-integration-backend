@@ -154,7 +154,7 @@ export default class MessengerService {
         participants,
         messages,
         lastUpdated,
-        unreadCount: messages.filter((m) => !m.read).length,
+        unreadCount: "0",
       };
     } catch (error: any) {
       console.error(

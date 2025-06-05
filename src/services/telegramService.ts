@@ -51,7 +51,7 @@ export default class TelegramService {
     }
   }
 
-  static async getTelegramConversations() {
+  static async getConversations() {
     try {
       const user = {
         id: "tg_user_123",
@@ -80,6 +80,7 @@ export default class TelegramService {
           participants: [user, page],
           messages,
           lastUpdated: messages[0].timestamp,
+          unreadCount: "0",
         },
       ];
 

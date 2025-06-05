@@ -185,6 +185,7 @@ export default class InstagramService {
         participants,
         messages,
         lastUpdated,
+        unreadCount: "0",
       };
     } catch (error: any) {
       console.error(

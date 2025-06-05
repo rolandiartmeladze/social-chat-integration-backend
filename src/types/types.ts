@@ -35,6 +35,7 @@ export interface Conversation {
     participants: User[];
     messages: Message[];
     lastUpdated: string;
+    unreadCount: string | null,
 }
 
 export interface Participants {
