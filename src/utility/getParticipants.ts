@@ -24,5 +24,5 @@ export async function getParticipants(
             avatarUrl: await getUserAvatar(pageParticipantRaw.id, accessToken) || "",
         } : UnknownUser;
 
-    return { user, page };
+    return { user: user, page: page };
 }
