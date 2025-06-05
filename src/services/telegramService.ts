@@ -51,26 +51,44 @@ export default class TelegramService {
     }
   }
 
-    static async getConversations() {
-  try {
-    const testConversation = [
-      {
-        conversationId: "telegram-001",
-        user: {
-          id: "tg_user_123",
-          name: "Test Telegram User",
-          avatar: null,
-        },
-        lastMessage: "გამარჯობა სატესტო მესიჯით!",
-        page: "telegram",
-      },
-    ];
+  static async getTelegramConversations() {
+    try {
+      const user = {
+        id: "tg_user_123",
+        name: "Test Telegram User",
+        avatarUrl: null,
+      };
 
-    console.log("Telegram test conversation loaded");
-    return testConversation;
-  } catch (error: any) {
-    console.error("Telegram getConversations error:", error.message);
-    throw new Error("Failed to fetch Telegram conversations");
+      const page = {
+        id: "telegram_page_id",
+        name: "Telegram Bot",
+        avatarUrl: null,
+      };
+
+      const messages = [
+        {
+          id: "msg_001",
+          senderId: user.id,
+          text: "გამარჯობა სატესტო მესიჯით!",
+          timestamp: new Date().toISOString(),
+        },
+      ];
+
+      const testConversation = [
+        {
+          conversationId: "telegram-001",
+          participants: [user, page],
+          messages,
+          lastUpdated: messages[0].timestamp,
+        },
+      ];
+
+      console.log("Telegram test conversation loaded");
+      return testConversation;
+    } catch (error: any) {
+      console.error("Telegram getConversations error:", error.message);
+      throw new Error("Failed to fetch Telegram conversations");
+    }
   }
-}
+
 }
