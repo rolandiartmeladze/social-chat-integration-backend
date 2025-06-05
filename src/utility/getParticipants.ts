@@ -3,7 +3,7 @@ import { User, Participants } from "../types/types"
 
 export async function getParticipants(
     participantsRaw: any[],
-    pageId: string,
+    pageId: string | null,
     accessToken: string
 ): Promise<Participants> {
     const UnknownUser: User = { id: "", name: "Unknown", avatarUrl: "" };
