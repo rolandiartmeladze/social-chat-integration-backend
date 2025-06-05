@@ -1,7 +1,5 @@
 import axios from "axios";
-
 const avatarCache = new Map<string, string>();
-
 export const getUserAvatar = async (
   userId: string,
   accessToken: string
@@ -12,18 +10,26 @@ export const getUserAvatar = async (
   if (cached) return cached;
 
   try {
-    const res = await axios.get(`https://graph.facebook.com/${userId}`, {
-      params: {
-        fields: "picture",
-        access_token: accessToken,
-      },
-    });
+    const response = await axios.get(
+      `https://graph.facebook.com/v17.0/${userId}/picture`,
+      {
+        params: {
+          access_token: accessToken,
+          redirect: false,
+        },
+      }
+    );
 
-    const url = res.data.picture?.data?.url || "";
-    avatarCache.set(userId, url);
-    return url;
+    const url = response.data?.data?.url || "";
+    if (url) {
+      avatarCache.set(userId, url);
+      return url;
+    } else {
+      console.warn("Avatar URL not found for user:", userId);
+      return "";
+    }
   } catch (err) {
-    console.error("Error fetching avatar:", err);
+    console.error("Error fetching avatar for user:", userId, err);
     return "";
   }
 };
