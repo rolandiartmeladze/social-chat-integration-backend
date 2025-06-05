@@ -12,9 +12,9 @@ export const getAllConversations = async (_req: Request, res: Response) => {
     ]);
 
     const allConversations = [
-      ...messengerConvs.map(c => ({ ...c, source: "messenger" })),
-      ...instagramConvs.map(c => ({ ...c, source: "instagram" })),
-      ...telegramConvs.map(c => ({ ...c, source: "telegram" })),
+      ...messengerConvs.map(c => ({ ...c, platform: "messenger" })),
+      ...instagramConvs.map(c => ({ ...c, platform: "instagram" })),
+      ...telegramConvs.map(c => ({ ...c, platform: "telegram" })),
     ];
 
     res.status(200).json({ conversations: allConversations });
