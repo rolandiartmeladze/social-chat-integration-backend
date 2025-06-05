@@ -1,7 +1,6 @@
 import axios from "axios";
 import dotenv from "dotenv";
 import { User, Conversation, Message } from "../types/types";
-import { getUserAvatar } from "../utility/getUserAvatar";
 import { getLastMessage } from '../utility/getLastMessage'
 import { getParticipants } from "../utility/getParticipants";
 
@@ -55,7 +54,7 @@ export default class MessengerService {
           },
         }
       );
-      
+
       const pageId = pageInfo.id;
       const conversations = await Promise.all(
         response.data.data.map(async (conv: any) => {
