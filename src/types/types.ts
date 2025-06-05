@@ -37,3 +37,7 @@ export interface Conversation {
     lastUpdated: string;
 }
 
+export interface Participants {
+  user: User;
+  page: User;
+}
