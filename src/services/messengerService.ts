@@ -63,7 +63,7 @@ export default class MessengerService {
           const lastMsg = await getLastMessage(conv.id, PAGE_ACCESS_TOKEN);
           return {
             conversationId: conv.id,
-            participants: [user, page],
+            participants: { user, page },
             messages: lastMsg,
             lastUpdated: lastMsg?.timestamp,
           };

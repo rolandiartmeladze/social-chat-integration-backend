@@ -77,7 +77,7 @@ export default class TelegramService {
       const testConversation = [
         {
           conversationId: "telegram-001",
-          participants: [user, page],
+          participants: { user, page },
           messages,
           lastUpdated: messages[0].timestamp,
           unreadCount: "0",
