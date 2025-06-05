@@ -1,6 +1,7 @@
 import axios from "axios";
 import dotenv from "dotenv";
 import { User, Conversation, Message } from "../types/types";
+import { getUserAvatar } from "../utility/getUserAvatar";
 
 dotenv.config();
 
@@ -33,6 +34,16 @@ export default class MessengerService {
     try {
       if (!PAGE_ACCESS_TOKEN) throw new Error("PAGE_ACCESS_TOKEN is missing");
 
+      const { data: pageInfo } = await axios.get(
+        `${process.env.FB_API_URL}/me`,
+        {
+          params: {
+            access_token: PAGE_ACCESS_TOKEN,
+            fields: "id,name",
+          },
+        }
+      );
+
       const response = await axios.get(
         `${process.env.FB_API_URL}/me/conversations`,
         {
@@ -42,19 +53,14 @@ export default class MessengerService {
           },
         }
       );
-
+      const pageId = pageInfo.id;
       const conversations = await Promise.all(
         response.data.data.map(async (conv: any) => {
           const participants = conv.participants?.data || [];
 
-          const page = participants.find(
-            (p: any) => p.name?.includes("RMdor") || p.name?.includes("Gorespo")
-          );
-          const user = participants.find((p: any) => p.name !== page?.name);
-
-          const userAvatar = user?.id
-            ? `https://graph.facebook.com/${user.id}/picture?type=normal`
-            : null;
+          const page = participants.find((p: any) => p.id === pageId);
+          const user = participants.find((p: any) => p.id !== page?.id);
+          const userAvatar = await getUserAvatar(user.id, PAGE_ACCESS_TOKEN!);
 
           let lastMessage = "";
           try {
@@ -78,9 +84,12 @@ export default class MessengerService {
 
           return {
             conversationId: conv.id,
-            user: user?.name || "Unknown User",
-            avatar: userAvatar,
-            page:"messenger",
+            user: {
+              id: user?.id || '',
+              name: user?.name || 'Unknown',
+              avatar: userAvatar,
+            },
+            page: page.name,
             lastMessage,
           };
         })
