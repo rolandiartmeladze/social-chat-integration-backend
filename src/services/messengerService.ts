@@ -2,6 +2,7 @@ import axios from "axios";
 import dotenv from "dotenv";
 import { User, Conversation, Message } from "../types/types";
 import { getUserAvatar } from "../utility/getUserAvatar";
+import { getLastMessage } from '../utility/getLastMessage'
 
 dotenv.config();
 
@@ -56,42 +57,32 @@ export default class MessengerService {
       const pageId = pageInfo.id;
       const conversations = await Promise.all(
         response.data.data.map(async (conv: any) => {
-          const participants = conv.participants?.data || [];
+          const participantsRaw = conv.participants?.data || [];
+          const pageParticipantRaw = participantsRaw.find((p: any) => p.id === pageId);
+          const userParticipantRaw = participantsRaw.find((p: any) => p.id !== pageId);
 
-          const page = participants.find((p: any) => p.id === pageId);
-          const user = participants.find((p: any) => p.id !== page?.id);
-          const userAvatar = user?.id
-            ? await getUserAvatar(user.id, PAGE_ACCESS_TOKEN!): "";
-            
-          let lastMessage = "";
-          try {
-            const msgRes = await axios.get(
-              `${process.env.FB_API_URL}/${conv.id}/messages`,
-              {
-                params: {
-                  access_token: PAGE_ACCESS_TOKEN,
-                  fields: "message,created_time,from",
-                  limit: 1,
-                },
-              }
-            );
+          const UnknownUser = { id: "", name: "Unknown", avatarUrl: "", }
+          const user: User = userParticipantRaw
+            ? {
+              id: userParticipantRaw.id,
+              name: userParticipantRaw.name || "Unknown",
+              avatarUrl: await getUserAvatar(userParticipantRaw.id, PAGE_ACCESS_TOKEN) || "",
+            } : UnknownUser;
 
-            if (msgRes.data.data.length > 0) {
-              lastMessage = msgRes.data.data[0].message || "";
-            }
-          } catch (msgErr) {
-            console.warn("Couldn't fetch last message for:", conv.id);
-          }
+          const page: User = pageParticipantRaw
+            ? {
+              id: pageParticipantRaw.id,
+              name: pageParticipantRaw.name || "Unknown",
+              avatarUrl: await getUserAvatar(pageParticipantRaw.id, PAGE_ACCESS_TOKEN) || "",
+            } : UnknownUser;
 
+          const participants = { user, page };
+          const lastMsg = await getLastMessage(conv.id, PAGE_ACCESS_TOKEN);
           return {
             conversationId: conv.id,
-            user: {
-              id: user?.id || '',
-              name: user?.name || 'Unknown',
-              avatar: userAvatar,
-            },
-            page: page?.name,
-            lastMessage,
+            participants,
+            messages: lastMsg,
+            lastUpdated: lastMsg?.timestamp,
           };
         })
       );
