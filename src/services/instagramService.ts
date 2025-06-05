@@ -1,6 +1,9 @@
 import axios from "axios";
 import { User, Conversation, Message } from "../types/types";
-import { getUserAvatar } from "../utility/getUserAvatar"
+import { getFacebookPageIdFromInstagramAccount } from "../utility/getFacebookPageIdFromInstagramAccount";
+import { getParticipants } from "../utility/getParticipants";
+import { getLastMessage } from "../utility/getLastMessage";
+
 const PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
 const FB_API_URL =
   process.env.FB_API_URL || "https://graph.facebook.com/v22.0/";
@@ -81,51 +84,20 @@ export default class InstagramService {
         }
       );
 
+      const pageId = await getFacebookPageIdFromInstagramAccount(IG_ACCOUNT_ID, PAGE_ACCESS_TOKEN);
       const conversations = await Promise.all(
         response.data.data.map(async (conv: any) => {
-          const participants = conv.participants?.data || [];
-
-          const user = participants.find((p: any) => p.id !== IG_ACCOUNT_ID);
-          const page = participants.find((p: any) => p.id === IG_ACCOUNT_ID);
-
-          const userAvatar = user?.id
-            ? await getUserAvatar(user.id, PAGE_ACCESS_TOKEN!)
-            : "";
-
-          let lastMessage = "";
-          try {
-            const msgRes = await axios.get(
-              `${process.env.FB_API_URL}/${conv.id}/messages`,
-              {
-                params: {
-                  access_token: PAGE_ACCESS_TOKEN,
-                  fields: "message,created_time,from",
-                  limit: 1,
-                },
-              }
-            );
-
-            if (msgRes.data.data.length > 0) {
-              lastMessage = msgRes.data.data[0].message || "";
-            }
-          } catch (msgErr) {
-            console.warn("Couldn't fetch last message for Instagram conv:", conv.id);
-          }
-
+          const participantsRaw = conv.participants?.data || [];
+          const { user, page } = await getParticipants(participantsRaw, pageId, PAGE_ACCESS_TOKEN);
+          const lastMsg = await getLastMessage(conv.id, PAGE_ACCESS_TOKEN);
           return {
             conversationId: conv.id,
-            user: {
-              id: user?.id || "",
-              name: user?.name || "Unknown User",
-              avatar: userAvatar,
-            },
-            page: page?.name || "Instagram Page",
-            lastMessage,
+            participants: [user, page],
+            messages: lastMsg,
+            lastUpdated: lastMsg?.timestamp,
           };
         })
       );
-
-      console.log(`Instagram conversations fetched: ${conversations.length}`);
       return conversations;
     } catch (error: any) {
       console.error(
@@ -213,7 +185,6 @@ export default class InstagramService {
         participants,
         messages,
         lastUpdated,
-        unreadCount: messages.filter((m) => !m.read).length,
       };
     } catch (error: any) {
       console.error(
