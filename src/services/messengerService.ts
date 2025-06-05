@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { User, Conversation, Message } from "../types/types";
 import { getUserAvatar } from "../utility/getUserAvatar";
 import { getLastMessage } from '../utility/getLastMessage'
+import { getParticipants } from "../utility/getParticipants";
 
 dotenv.config();
 
@@ -54,40 +55,21 @@ export default class MessengerService {
           },
         }
       );
+      
       const pageId = pageInfo.id;
       const conversations = await Promise.all(
         response.data.data.map(async (conv: any) => {
           const participantsRaw = conv.participants?.data || [];
-          const pageParticipantRaw = participantsRaw.find((p: any) => p.id === pageId);
-          const userParticipantRaw = participantsRaw.find((p: any) => p.id !== pageId);
-
-          const UnknownUser = { id: "", name: "Unknown", avatarUrl: "", }
-          const user: User = userParticipantRaw
-            ? {
-              id: userParticipantRaw.id,
-              name: userParticipantRaw.name || "Unknown",
-              avatarUrl: await getUserAvatar(userParticipantRaw.id, PAGE_ACCESS_TOKEN) || "",
-            } : UnknownUser;
-
-          const page: User = pageParticipantRaw
-            ? {
-              id: pageParticipantRaw.id,
-              name: pageParticipantRaw.name || "Unknown",
-              avatarUrl: await getUserAvatar(pageParticipantRaw.id, PAGE_ACCESS_TOKEN) || "",
-            } : UnknownUser;
-
-          const participants = { user, page };
+          const { user, page } = await getParticipants(participantsRaw, pageId, PAGE_ACCESS_TOKEN);
           const lastMsg = await getLastMessage(conv.id, PAGE_ACCESS_TOKEN);
           return {
             conversationId: conv.id,
-            participants,
+            participants: [user, page],
             messages: lastMsg,
             lastUpdated: lastMsg?.timestamp,
           };
         })
       );
-
-      console.log(`თქვენ გაქვთ ${conversations.length} აქტიური საუბარი.`);
       return conversations;
     } catch (error: any) {
       console.error(
