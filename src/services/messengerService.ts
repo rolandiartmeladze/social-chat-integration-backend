@@ -1,6 +1,6 @@
 import axios from "axios";
 import dotenv from "dotenv";
-import { User, Conversation, Message } from "../types";
+import { User, Conversation, Message } from "../types/types";
 
 dotenv.config();
 
@@ -80,7 +80,7 @@ export default class MessengerService {
             conversationId: conv.id,
             user: user?.name || "Unknown User",
             avatar: userAvatar,
-            page: page?.name || "Unknown Page",
+            page:"messenger",
             lastMessage,
           };
         })

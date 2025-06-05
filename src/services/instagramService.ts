@@ -65,49 +65,74 @@ export default class InstagramService {
     }
   }
 
-  static async getConversations() {
-    if (!IG_ACCOUNT_ID || !PAGE_ACCESS_TOKEN) {
-      throw new Error("Instagram Business ID or Access Token missing");
-    }
+static async getConversations() {
+  if (!IG_ACCOUNT_ID || !PAGE_ACCESS_TOKEN) {
+    throw new Error("Instagram Business ID or Access Token missing");
+  }
 
-    try {
-      const response = await axios.get(
-        `https://graph.facebook.com/v22.0/${IG_ACCOUNT_ID}/conversations?platform=instagram`,
-        {
-          params: {
-            access_token: PAGE_ACCESS_TOKEN,
-            fields: "id,participants",
-          },
-        }
-      );
+  try {
+    const response = await axios.get(
+      `${process.env.FB_API_URL}/${IG_ACCOUNT_ID}/conversations?platform=instagram`,
+      {
+        params: {
+          access_token: PAGE_ACCESS_TOKEN,
+          fields: "id,participants",
+        },
+      }
+    );
 
-      const conversations = response.data.data.map((conv: any) => {
+    const conversations = await Promise.all(
+      response.data.data.map(async (conv: any) => {
         const participants = conv.participants?.data || [];
 
         const user = participants.find((p: any) => p.id !== IG_ACCOUNT_ID);
 
+        const userAvatar = user?.id
+          ? `https://graph.facebook.com/${user.id}/picture?type=normal`
+          : null;
+
+        let lastMessage = "";
+        try {
+          const msgRes = await axios.get(
+            `${process.env.FB_API_URL}/${conv.id}/messages`,
+            {
+              params: {
+                access_token: PAGE_ACCESS_TOKEN,
+                fields: "message,created_time,from",
+                limit: 1,
+              },
+            }
+          );
+
+          if (msgRes.data.data.length > 0) {
+            lastMessage = msgRes.data.data[0].message || "";
+          }
+        } catch (msgErr) {
+          console.warn("Couldn't fetch last message for Instagram conv:", conv.id);
+        }
+
         return {
           conversationId: conv.id,
-          user: {
-            id: user?.id || "unknown",
-            name: user?.name || "Unknown User",
-            avatar: user?.id
-              ? `https://graph.facebook.com/${user.id}/picture?type=normal`
-              : null,
-          },
+          user: user?.name || "Unknown User",
+          avatar: userAvatar,
+          page: "instagram",
+          lastMessage,
         };
-      });
+      })
+    );
 
-      console.log(`Instagram conversations fetched: ${conversations.length}`);
-      return conversations;
-    } catch (error: any) {
-      console.error(
-        "Instagram getConversations error:",
-        error?.response?.data || error.message
-      );
-      throw new Error("Failed to fetch Instagram conversations");
-    }
+    console.log(`Instagram conversations fetched: ${conversations.length}`);
+    return conversations;
+  } catch (error: any) {
+    console.error(
+      "Instagram getConversations error:",
+      error?.response?.data || error.message
+    );
+    throw new Error("Failed to fetch Instagram conversations");
   }
+}
+
+
 
   static async getChat(conversationId: string): Promise<Conversation> {
     if (!PAGE_ACCESS_TOKEN) throw new Error("FB_PAGE_ACCESS_TOKEN is missing");

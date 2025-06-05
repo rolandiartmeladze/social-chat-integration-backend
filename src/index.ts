@@ -6,6 +6,7 @@ import bodyParser from "body-parser";
 import messengerRouter from "./routes/messenger";
 import instagramRouter from "./routes/instagram";
 import telegramRouter from "./routes/telegram";
+import conversations from "./routes/conversations"
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(bodyParser.json());
 app.use("/messenger", messengerRouter);
 app.use("/instagram", instagramRouter);
 app.use('/telegram', telegramRouter);
+app.use('/conversations', conversations);
 
 app.get("/", (_req, res) => {
   res.send("გამარჯობა  მოგესალმებით Backend სერვერიდან რომელიც აბრუნებს შეტყობინებებს და მესენჯერ, ინსტაგრამ, ტელეგრამ  ჩათებიდან და საშუალებას აძლებს მომხმარებელს გაგზავნოს შესაბამისი მოთხოვნა გვერდზე --  TypeScript + Node.js app.");

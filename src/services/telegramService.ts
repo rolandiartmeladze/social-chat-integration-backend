@@ -50,4 +50,27 @@ export default class TelegramService {
       throw new Error("Telegram bot not reachable");
     }
   }
+
+    static async getConversations() {
+  try {
+    const testConversation = [
+      {
+        conversationId: "telegram-001",
+        user: {
+          id: "tg_user_123",
+          name: "Test Telegram User",
+          avatar: null,
+        },
+        lastMessage: "გამარჯობა სატესტო მესიჯით!",
+        page: "telegram",
+      },
+    ];
+
+    console.log("Telegram test conversation loaded");
+    return testConversation;
+  } catch (error: any) {
+    console.error("Telegram getConversations error:", error.message);
+    throw new Error("Failed to fetch Telegram conversations");
+  }
+}
 }
