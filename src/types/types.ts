@@ -32,10 +32,7 @@ export interface Message {
 
 export interface Conversation {
     id: string;
-    participants: {
-      user: User;
-      page: User;
-    }
+    participants: Participants;
     messages: Message[];
     lastUpdated: string;
     unreadCount: string | null,
