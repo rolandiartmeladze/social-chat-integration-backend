@@ -1,7 +1,7 @@
 import axios from "axios";
 import dotenv from "dotenv";
 import { User, Conversation, Message } from "../types/types";
-import { getLastMessage } from '../utility/getLastMessage'
+import { getMessage } from '../utility/getMessage'
 import { getParticipants } from "../utility/getParticipants";
 
 dotenv.config();
@@ -60,12 +60,12 @@ export default class MessengerService {
         response.data.data.map(async (conv: any) => {
           const participantsRaw = conv.participants?.data || [];
           const { user, page } = await getParticipants(participantsRaw, pageId, PAGE_ACCESS_TOKEN);
-          const lastMsg = await getLastMessage(conv.id, PAGE_ACCESS_TOKEN);
+          const getMsg = await getMessage(conv.id, PAGE_ACCESS_TOKEN, 1);
           return {
             conversationId: conv.id,
             participants: { user, page },
-            messages: lastMsg,
-            lastUpdated: lastMsg?.timestamp,
+            messages: getMsg,
+            lastUpdated: getMsg?.[0]?.timestamp || null,
           };
         })
       );

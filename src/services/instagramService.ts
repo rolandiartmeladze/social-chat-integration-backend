@@ -2,7 +2,7 @@ import axios from "axios";
 import { User, Conversation, Message } from "../types/types";
 import { getFacebookPageIdFromInstagramAccount } from "../utility/getFacebookPageIdFromInstagramAccount";
 import { getParticipants } from "../utility/getParticipants";
-import { getLastMessage } from "../utility/getLastMessage";
+import { getMessage } from "../utility/getMessage";
 
 const PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
 const FB_API_URL =
@@ -89,12 +89,12 @@ export default class InstagramService {
         response.data.data.map(async (conv: any) => {
           const participantsRaw = conv.participants?.data || [];
           const { user, page } = await getParticipants(participantsRaw, pageId, PAGE_ACCESS_TOKEN);
-          const lastMsg = await getLastMessage(conv.id, PAGE_ACCESS_TOKEN);
+          const getMsg = await getMessage(conv.id, PAGE_ACCESS_TOKEN, 1);
           return {
             conversationId: conv.id,
             participants: { user, page },
-            messages: lastMsg,
-            lastUpdated: lastMsg?.timestamp,
+            messages: getMsg,
+lastUpdated: getMsg?.[0]?.timestamp || null,
           };
         })
       );
