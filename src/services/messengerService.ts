@@ -106,17 +106,12 @@ export default class MessengerService {
       const { user, page } = await getParticipants(participantsRaw, pageId, PAGE_ACCESS_TOKEN);
       const messages = await getMessage(conversationId, PAGE_ACCESS_TOKEN, 25);
 
-      const participantsMap = new Map<string, User>();
-      participantsMap.set(user.id, user);
-      participantsMap.set(page.id, page);
-      const participants: User[] = Array.from(participantsMap.values());
-
       const lastUpdated =
         messages.length > 0 ? messages[0].timestamp : new Date().toISOString();
 
       return {
         id: conversationId,
-        participants,
+        participants: { user, page },
         messages,
         lastUpdated,
         unreadCount: "0",
