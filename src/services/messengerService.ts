@@ -60,12 +60,12 @@ export default class MessengerService {
         response.data.data.map(async (conv: any) => {
           const participantsRaw = conv.participants?.data || [];
           const { user, page } = await getParticipants(participantsRaw, pageId, PAGE_ACCESS_TOKEN);
-          const getMsg = await getMessage(conv.id, PAGE_ACCESS_TOKEN, 1);
+          const messages = await getMessage(conv.id, PAGE_ACCESS_TOKEN, 1);
           return {
             conversationId: conv.id,
             participants: { user, page },
-            messages: getMsg,
-            lastUpdated: getMsg?.[0]?.timestamp || null,
+            messages: messages,
+            lastUpdated: messages?.[0]?.timestamp || null,
           };
         })
       );
@@ -81,69 +81,34 @@ export default class MessengerService {
 
   static async getChat(conversationId: string): Promise<Conversation> {
     if (!PAGE_ACCESS_TOKEN) throw new Error("FB_PAGE_ACCESS_TOKEN is missing");
-
     try {
-      const response = await axios.get(
-        `${process.env.FB_API_URL}/${conversationId}/messages`,
+      const conversationDetails = await axios.get(
+        `${process.env.FB_API_URL}/${conversationId}`,
         {
           params: {
             access_token: PAGE_ACCESS_TOKEN,
-            fields: "message,from,created_time",
-            limit: 25,
+            fields: "participants",
           },
         }
       );
 
-      const messagesRaw = response.data.data;
-      const avatarCache = new Map<string, string>();
-
-      const messages: Message[] = await Promise.all(
-        messagesRaw.map(async (msg: any): Promise<Message> => {
-          const senderId = msg.from?.id;
-          const senderName = msg.from?.name || "Unknown";
-
-          let avatarUrl: string = avatarCache.get(senderId) || "";
-
-          if (!avatarUrl) {
-            try {
-              const res = await axios.get(
-                `https://graph.facebook.com/${senderId}`,
-                {
-                  params: {
-                    fields: "picture",
-                    access_token: PAGE_ACCESS_TOKEN,
-                  },
-                }
-              );
-              avatarUrl = res.data.picture?.data?.url || "";
-            } catch {
-              avatarUrl = "";
-            }
-            avatarCache.set(senderId, avatarUrl);
-          }
-          const sender: User = {
-            id: senderId,
-            name: senderName,
-            avatarUrl,
-          };
-
-          return {
-            id: msg.id,
-            sender,
-            text: msg.message || "",
-            timestamp: msg.created_time,
-            read: false,
-          };
-        })
+      const { data: pageInfo } = await axios.get(
+        `${process.env.FB_API_URL}/me`,
+        {
+          params: {
+            access_token: PAGE_ACCESS_TOKEN,
+            fields: "id,name",
+          },
+        }
       );
+      const pageId = pageInfo.id;
+      const participantsRaw = conversationDetails.data?.participants?.data || [];
+      const { user, page } = await getParticipants(participantsRaw, pageId, PAGE_ACCESS_TOKEN);
+      const messages = await getMessage(conversationId, PAGE_ACCESS_TOKEN, 25);
 
       const participantsMap = new Map<string, User>();
-      messages.forEach((msg) => {
-        if (!participantsMap.has(msg.sender.id)) {
-          participantsMap.set(msg.sender.id, msg.sender);
-        }
-      });
-
+      participantsMap.set(user.id, user);
+      participantsMap.set(page.id, page);
       const participants: User[] = Array.from(participantsMap.values());
 
       const lastUpdated =
