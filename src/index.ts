@@ -17,18 +17,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
-
-app.use("/messenger", messengerRouter);
-app.use("/instagram", instagramRouter);
-app.use('/telegram', telegramRouter);
-app.use('/conversations', conversations);
-
-app.get("/", (_req, res) => {
-  res.send("გამარჯობა  მოგესალმებით Backend სერვერიდან რომელიც აბრუნებს შეტყობინებებს და მესენჯერ, ინსტაგრამ, ტელეგრამ  ჩათებიდან და საშუალებას აძლებს მომხმარებელს გაგზავნოს შესაბამისი მოთხოვნა გვერდზე --  TypeScript + Node.js app.");
-});
 
 app.use(cors({
   origin: process.env.FRONTEND_URL,
@@ -41,7 +31,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true, // coming soon
+    secure: true,
     httpOnly: true,
     sameSite: 'none'
   }
@@ -50,18 +40,15 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.get('/auth/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] }));
+app.use("/messenger", messengerRouter);
+app.use("/instagram", instagramRouter);
+app.use('/telegram', telegramRouter);
+app.use('/conversations', conversations);
 
-app.get('/auth/google/callback',
-  passport.authenticate('google', {
-    failureRedirect: `${process.env.FRONTEND_URL}/login`,
-    session: true
-  }),
-  (req, res) => {
-    res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
-  }
-);
+app.get("/", (_req, res) => {
+  res.send("გამარჯობა  მოგესალმებით Backend სერვერიდან რომელიც აბრუნებს შეტყობინებებს და მესენჯერ, ინსტაგრამ, ტელეგრამ  ჩათებიდან და საშუალებას აძლებს მომხმარებელს გაგზავნოს შესაბამისი მოთხოვნა გვერდზე --  TypeScript + Node.js app.");
+});
+
 
 app.get('/api/protected', (req, res) => {
   if (!req.isAuthenticated()) {
