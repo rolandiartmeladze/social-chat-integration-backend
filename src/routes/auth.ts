@@ -16,14 +16,18 @@ router.get('/google/callback',
   }),
   (req, res) => {
     res.send(`
-      <script>
-        if (window.opener) {
-          window.opener.postMessage('authenticated', '${process.env.FRONTEND_URL}');
-          window.close();
-        } else {
-          document.body.innerText = 'Authentication successful. Please close this window.';
-        }
-      </script>
+       <html>
+        <body>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage('authenticated', '${process.env.FRONTEND_URL}');
+              window.close();
+            } else {
+              document.body.innerText = 'Authentication successful. You can close this window.';
+            }
+          </script>
+        </body>
+      </html>
     `);
   }
 );
