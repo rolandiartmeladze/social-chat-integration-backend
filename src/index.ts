@@ -10,6 +10,7 @@ import telegramRouter from "./routes/telegram";
 import conversations from "./routes/conversations"
 import passport from "passport";
 import session from "express-session";
+import authRouter from "./routes/auth";
 
 
 dotenv.config();
@@ -44,6 +45,7 @@ app.use("/messenger", messengerRouter);
 app.use("/instagram", instagramRouter);
 app.use('/telegram', telegramRouter);
 app.use('/conversations', conversations);
+app.use('/auth', authRouter);
 
 app.get("/", (_req, res) => {
   res.send("გამარჯობა  მოგესალმებით Backend სერვერიდან რომელიც აბრუნებს შეტყობინებებს და მესენჯერ, ინსტაგრამ, ტელეგრამ  ჩათებიდან და საშუალებას აძლებს მომხმარებელს გაგზავნოს შესაბამისი მოთხოვნა გვერდზე --  TypeScript + Node.js app.");
