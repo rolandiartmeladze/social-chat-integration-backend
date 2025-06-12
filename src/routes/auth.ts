@@ -15,9 +15,15 @@ router.get('/google/callback',
     session: true
   }),
   (req, res) => {
-    res.redirect(`${process.env.FRONTEND_URL}/user/messages`);
+    res.send(`
+      <script>
+        window.opener.postMessage('authenticated', '${process.env.FRONTEND_URL}');
+        window.close();
+      </script>
+    `);
   }
 );
+
 
 router.get('/logout', (req, res) => {
   req.logout((err) => {
