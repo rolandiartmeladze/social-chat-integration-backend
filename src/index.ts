@@ -26,6 +26,7 @@ app.use(cors({
   credentials: true,
 }));
 
+app.set("trust proxy", 1);
 app.use(session({
 
   secret: process.env.COOKIE_SECRET as string,
@@ -53,6 +54,10 @@ app.get("/", (_req, res) => {
 
 
 app.get('/api/protected', (req, res) => {
+  console.log("Session ID:", req.sessionID);
+  console.log("Session:", req.session);
+  console.log("User:", req.user);
+
   if (!req.isAuthenticated()) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
