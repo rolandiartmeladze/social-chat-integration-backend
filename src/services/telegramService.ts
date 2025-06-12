@@ -80,6 +80,7 @@ export default class TelegramService {
           participants: { user, page },
           messages,
           lastUpdated: messages[0].timestamp,
+          platform: "telegram",
           unreadCount: "0",
         },
       ];

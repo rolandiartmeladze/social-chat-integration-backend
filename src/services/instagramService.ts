@@ -94,7 +94,7 @@ export default class InstagramService {
             conversationId: conv.id,
             participants: { user, page },
             messages: getMsg,
-lastUpdated: getMsg?.[0]?.timestamp || null,
+            lastUpdated: getMsg?.[0]?.timestamp || null,
           };
         })
       );
@@ -111,105 +111,106 @@ lastUpdated: getMsg?.[0]?.timestamp || null,
 
 
   static async getChat(conversationId: string): Promise<Conversation> {
-  if (!PAGE_ACCESS_TOKEN) {
-    throw new Error("FB_PAGE_ACCESS_TOKEN is missing");
-  }
+    if (!PAGE_ACCESS_TOKEN) {
+      throw new Error("FB_PAGE_ACCESS_TOKEN is missing");
+    }
 
-  try {
-    const response = await axios.get(
-      `${process.env.FB_API_URL}/${conversationId}/messages`,
-      {
-        params: {
-          access_token: PAGE_ACCESS_TOKEN,
-          fields: "message,from,created_time",
-          limit: 25,
-        },
-      }
-    );
-
-    const conversationDetails = await axios.get(
-      `${process.env.FB_API_URL}/${conversationId}`,
-      {
-        params: {
-          access_token: PAGE_ACCESS_TOKEN,
-          fields: "participants",
-        },
-      }
-    );
-
-    const { data: pageInfo } = await axios.get(
-      `${process.env.FB_API_URL}/me`,
-      {
-        params: {
-          access_token: PAGE_ACCESS_TOKEN,
-          fields: "id,name",
-        },
-      }
-    );
-
-    const pageId = pageInfo.id;
-    const participantsRaw = conversationDetails.data?.participants?.data || [];
-    const { user, page } = await getParticipants(participantsRaw, pageId, PAGE_ACCESS_TOKEN);
-
-    const messagesRaw = response.data.data;
-    const avatarCache = new Map<string, string>();
-
-    const messages: Message[] = await Promise.all(
-      messagesRaw.map(async (msg: any): Promise<Message> => {
-        const senderId = msg.from?.id;
-        const senderName = msg.from?.name || "Unknown";
-
-        let avatarUrl: string = avatarCache.get(senderId) || "";
-
-        if (!avatarUrl) {
-          try {
-            const res = await axios.get(
-              `https://graph.facebook.com/${senderId}`,
-              {
-                params: {
-                  fields: "picture",
-                  access_token: PAGE_ACCESS_TOKEN,
-                },
-              }
-            );
-            avatarUrl = res.data.picture?.data?.url || "";
-          } catch {
-            avatarUrl = "";
-          }
-          avatarCache.set(senderId, avatarUrl);
+    try {
+      const response = await axios.get(
+        `${process.env.FB_API_URL}/${conversationId}/messages`,
+        {
+          params: {
+            access_token: PAGE_ACCESS_TOKEN,
+            fields: "message,from,created_time",
+            limit: 25,
+          },
         }
+      );
 
-        const sender: User = {
-          id: senderId,
-          name: senderName,
-          avatarUrl,
-        };
+      const conversationDetails = await axios.get(
+        `${process.env.FB_API_URL}/${conversationId}`,
+        {
+          params: {
+            access_token: PAGE_ACCESS_TOKEN,
+            fields: "participants",
+          },
+        }
+      );
 
-        return {
-          id: msg.id,
-          sender,
-          text: msg.message || "",
-          timestamp: msg.created_time,
-          read: false,
-        };
-      })
-    );
+      const { data: pageInfo } = await axios.get(
+        `${process.env.FB_API_URL}/me`,
+        {
+          params: {
+            access_token: PAGE_ACCESS_TOKEN,
+            fields: "id,name",
+          },
+        }
+      );
 
-    const lastUpdated = messages.length > 0 ? messages[0].timestamp : new Date().toISOString();
+      const pageId = pageInfo.id;
+      const participantsRaw = conversationDetails.data?.participants?.data || [];
+      const { user, page } = await getParticipants(participantsRaw, pageId, PAGE_ACCESS_TOKEN);
 
-    return {
-      id: conversationId,
-      participants: { user, page },
-      messages,
-      lastUpdated,
-      unreadCount: "0",
-    };
-  } catch (error: any) {
-    console.error(
-      "Error fetching messages from conversation:",
-      error?.response?.data || error.message
-    );
-    throw new Error("Failed to fetch messages from conversation");
+      const messagesRaw = response.data.data;
+      const avatarCache = new Map<string, string>();
+
+      const messages: Message[] = await Promise.all(
+        messagesRaw.map(async (msg: any): Promise<Message> => {
+          const senderId = msg.from?.id;
+          const senderName = msg.from?.name || "Unknown";
+
+          let avatarUrl: string = avatarCache.get(senderId) || "";
+
+          if (!avatarUrl) {
+            try {
+              const res = await axios.get(
+                `https://graph.facebook.com/${senderId}`,
+                {
+                  params: {
+                    fields: "picture",
+                    access_token: PAGE_ACCESS_TOKEN,
+                  },
+                }
+              );
+              avatarUrl = res.data.picture?.data?.url || "";
+            } catch {
+              avatarUrl = "";
+            }
+            avatarCache.set(senderId, avatarUrl);
+          }
+
+          const sender: User = {
+            id: senderId,
+            name: senderName,
+            avatarUrl,
+          };
+
+          return {
+            id: msg.id,
+            sender,
+            text: msg.message || "",
+            timestamp: msg.created_time,
+            read: false,
+          };
+        })
+      );
+
+      const lastUpdated = messages.length > 0 ? messages[0].timestamp : new Date().toISOString();
+
+      return {
+        id: conversationId,
+        participants: { user, page },
+        messages,
+        lastUpdated,
+        platform: "instagram",
+        unreadCount: "0",
+      };
+    } catch (error: any) {
+      console.error(
+        "Error fetching messages from conversation:",
+        error?.response?.data || error.message
+      );
+      throw new Error("Failed to fetch messages from conversation");
+    }
   }
-}
 }

@@ -17,25 +17,26 @@ export interface TelegramUpdate {
 }
 
 export interface User {
-    id: string;
-    name: string;
-    avatarUrl: string;
+  id: string;
+  name: string;
+  avatarUrl: string;
 }
 
 export interface Message {
-    id: string;
-    sender: User;
-    text: string;
-    timestamp: string;
-    read: boolean;
+  id: string;
+  sender: User;
+  text: string;
+  timestamp: string;
+  read: boolean;
 }
 
 export interface Conversation {
-    id: string;
-    participants: Participants;
-    messages: Message[];
-    lastUpdated: string;
-    unreadCount: string | null,
+  id: string;
+  participants: Participants;
+  messages: Message[];
+  lastUpdated: string;
+  platform: string;
+  unreadCount: string | null,
 }
 
 export interface Participants {

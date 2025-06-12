@@ -114,6 +114,7 @@ export default class MessengerService {
         participants: { user, page },
         messages,
         lastUpdated,
+        platform: "messenger",
         unreadCount: "0",
       };
     } catch (error: any) {
