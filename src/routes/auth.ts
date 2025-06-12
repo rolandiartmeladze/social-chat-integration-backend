@@ -1,7 +1,10 @@
 import express from "express";
 import passport from "passport";
+import dotenv from "dotenv";
+
 
 const router = express.Router();
+dotenv.config();
 
 router.get('/google',
   passport.authenticate('google', { scope: ['profile', 'email'] }));
