@@ -2,12 +2,11 @@ import express from "express";
 import passport from "passport";
 
 const router = express.Router();
-const app = express();
 
-app.get('/google',
+router.get('/google',
   passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-app.get('/google/callback',
+router.get('/google/callback',
   passport.authenticate('google', {
     failureRedirect: `${process.env.FRONTEND_URL}/auth/sign-in`,
     session: true
