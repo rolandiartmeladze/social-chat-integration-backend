@@ -15,20 +15,7 @@ router.get('/google/callback',
     session: true
   }),
   (req, res) => {
-    res.send(`
-       <html>
-        <body>
-          <script>
-            if (window.opener) {
-              window.opener.postMessage('authenticated', '${process.env.FRONTEND_URL}');
-              window.close();
-            } else {
-              document.body.innerText = 'Authentication successful. You can close this window.';
-            }
-          </script>
-        </body>
-      </html>
-    `);
+    res.redirect(`${process.env.FRONTEND_URL}/user/messages`);
   }
 );
 
