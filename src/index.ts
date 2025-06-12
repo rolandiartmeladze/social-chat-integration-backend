@@ -52,18 +52,6 @@ app.get("/", (_req, res) => {
   res.send("გამარჯობა  მოგესალმებით Backend სერვერიდან რომელიც აბრუნებს შეტყობინებებს და მესენჯერ, ინსტაგრამ, ტელეგრამ  ჩათებიდან და საშუალებას აძლებს მომხმარებელს გაგზავნოს შესაბამისი მოთხოვნა გვერდზე --  TypeScript + Node.js app.");
 });
 
-
-app.get('/api/protected', (req, res) => {
-  console.log("Session ID:", req.sessionID);
-  console.log("Session:", req.session);
-  console.log("User:", req.user);
-
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-  res.json({ user: req.user });
-});
-
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
 });

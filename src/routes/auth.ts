@@ -19,6 +19,14 @@ router.get('/google/callback',
   }
 );
 
+router.get('/protected', (req, res) => {
+  console.log("User:", req.user);
+
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  res.json({ user: req.user });
+});
 
 router.get('/logout', (req, res) => {
   req.logout((err) => {
