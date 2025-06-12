@@ -17,8 +17,12 @@ router.get('/google/callback',
   (req, res) => {
     res.send(`
       <script>
-        window.opener.postMessage('authenticated', '${process.env.FRONTEND_URL}');
-        window.close();
+        if (window.opener) {
+          window.opener.postMessage('authenticated', '${process.env.FRONTEND_URL}');
+          window.close();
+        } else {
+          document.body.innerText = 'Authentication successful. Please close this window.';
+        }
       </script>
     `);
   }
