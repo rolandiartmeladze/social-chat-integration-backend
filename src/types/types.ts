@@ -38,6 +38,7 @@ export interface Participants {
 }
 
 export interface IncomingMessagePayload {
+  id?: string;
   conversationId: string;
   platform: Platform;
   senderId: string;
