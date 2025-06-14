@@ -3,6 +3,6 @@ import { io } from "../socket";
 import {IncomingMessagePayload } from "../types/types";  
 export default class WebhookController {
   static handleIncomingMessage(payload: IncomingMessagePayload) {
-    io.emit("message:received", payload);
+    io.emit("new_message", payload);
   }
 }
