@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import MessengerController from "../controllers/messengerController.ts";
+import MessengerController from "../controllers/messengerController";
 
 const router = Router();
 

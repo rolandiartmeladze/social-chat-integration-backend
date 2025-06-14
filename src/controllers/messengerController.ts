@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import MessengerService from "../services/messengerService";
-import WebhookController from "../controllers/webhook.controller"
+import WebhookController from "./webhook.controller"
 import { IncomingMessagePayload } from "../types/types"
 
 type Message = { sender: string; text: string; timestamp: string };
