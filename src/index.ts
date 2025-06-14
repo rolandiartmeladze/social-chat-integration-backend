@@ -4,6 +4,8 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import './auth/googleAuth';
 
+import { createServer } from "http";
+import { initSocket } from "./socket";
 import messengerRouter from "./routes/messenger";
 import instagramRouter from "./routes/instagram";
 import telegramRouter from "./routes/telegram";
@@ -17,6 +19,8 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const httpServer = createServer(app);
+initSocket(httpServer);
 
 app.use(express.json());
 app.use(bodyParser.json());
@@ -52,6 +56,7 @@ app.get("/", (_req, res) => {
   res.send("გამარჯობა  მოგესალმებით Backend სერვერიდან რომელიც აბრუნებს შეტყობინებებს და მესენჯერ, ინსტაგრამ, ტელეგრამ  ჩათებიდან და საშუალებას აძლებს მომხმარებელს გაგზავნოს შესაბამისი მოთხოვნა გვერდზე --  TypeScript + Node.js app.");
 });
 
-app.listen(PORT, async () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+
+httpServer.listen(process.env.PORT || 3001, () =>
+  console.log("Server listening")
+);
