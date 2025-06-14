@@ -1,12 +1,5 @@
 export type Platform = 'telegram' | 'messenger' | 'instagram';
 
-export interface IncomingMessagePayload {
-  senderId: string;
-  username: string;
-  text: string;
-  platform: Platform;
-}
-
 export interface TelegramUpdate {
   message?: {
     chat?: { id: number };
@@ -42,4 +35,13 @@ export interface Conversation {
 export interface Participants {
   user: User;
   page: User;
+}
+
+export interface IncomingMessagePayload {
+  conversationId: string;
+  platform: Platform;
+  senderId: string;
+  username: string;
+  text: string;
+  timestamp: string;
 }
