@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import MessengerService from "../services/messengerService";
+import WebhookController from "../controllers/webhook.controller"
+import { IncomingMessagePayload } from "../types/types"
 
 type Message = { sender: string; text: string; timestamp: string };
 
@@ -28,21 +30,24 @@ export default class MessengerController {
     for (const entry of body.entry || []) {
       for (const event of entry.messaging || []) {
         const senderId = event.sender?.id;
+        const senderName = event.sender?.name;
         const text = event.message?.text;
-        console.log(`📨 Received: ${text} from ${senderId}`);
-        console.log(body);
         if (senderId && text) {
-          messages.push({
-            sender: senderId,
+          const payload: IncomingMessagePayload = {
+            conversationId: `messenger-${senderId}`,
+            platform: "messenger",
+            username: senderName,
+            senderId,
             text,
             timestamp: new Date().toISOString(),
-          });
+          };
+
+          WebhookController.handleIncomingMessage(payload);
         }
       }
     }
-
-    return res.status(200).send("EVENT_RECEIVED");
-  }
+      return res.status(200).send("EVENT_RECEIVED");
+    }
 
   static getMessages(_req: Request, res: Response) {
     return res.status(200).json({ messages });
