@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import MessengerService from "../services/messengerService";
-import WebhookController from "./webhook.controller"
+import WebhookController from "./webhookController"
 import { IncomingMessagePayload } from "../types/types"
 
 type Message = { sender: string; text: string; timestamp: string };
@@ -22,36 +22,35 @@ export default class MessengerController {
     return res.sendStatus(403);
   }
 
-  static async receiveWebhook(req: Request, res: Response) {
+ static async receiveWebhook(req: Request, res: Response) {
+  const body = req.body;
+  if (body.object !== "page") return res.sendStatus(404);
 
-    const body = req.body;
-    if (body.object !== "page") return res.sendStatus(404);
+  for (const entry of body.entry || []) {
+    for (const event of entry.messaging || []) {
+      const senderId = event.sender?.id;
+      const text = event.message?.text;
+      const timestamp = event.timestamp;
+      const conversationId = `messenger-${senderId}`; // მაგალითად
+      const username = event.sender?.name || "unknown";
 
-    for (const entry of body.entry || []) {
-      for (const event of entry.messaging || []) {
-        const senderId = event.sender?.id;
-        const senderName = event.sender?.name;
-        const text = event.message?.text;
-        if (senderId && text) {
-          const payload: IncomingMessagePayload = {
-            conversationId: `messenger-${senderId}`,
-            platform: "messenger",
-            username: senderName,
-            senderId,
-            text,
-            timestamp: new Date().toISOString(),
-          };
-
-          WebhookController.handleIncomingMessage(payload);
-        }
+      if (senderId && text) {
+        console.log("📥 Messenger message:", { senderId, text });
+        WebhookController.handleIncomingMessage({
+          conversationId,
+          platform: "messenger",
+          senderId,
+          username,
+          text,
+          timestamp,
+        });
       }
     }
-      return res.status(200).send("EVENT_RECEIVED");
-    }
-
-  static getMessages(_req: Request, res: Response) {
-    return res.status(200).json({ messages });
   }
+
+  return res.status(200).send("EVENT_RECEIVED");
+}
+
 
   static async sendMessageFromFrontend(req: Request, res: Response) {
     const { sender, text } = req.body;
