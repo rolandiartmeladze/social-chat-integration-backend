@@ -1,8 +1,7 @@
 import axios from "axios";
 import dotenv from "dotenv";
 import { Request, Response } from "express";
-import { IncomingMessagePayload, TelegramUpdate } from "../types/types";
-import { UnifiedMessageHandler } from "./UnifiedMessageHandler";
+import { TelegramUpdate } from "../types/types";
 
 dotenv.config();
 
@@ -20,14 +19,7 @@ export default class TelegramService {
     const text = update?.message?.text;
 
     if (chatId && text) {
-      const payload: IncomingMessagePayload = {
-        senderId: String(chatId),
-        username,
-        text,
-        platform: "telegram",
-      };
 
-      await UnifiedMessageHandler.processMessage(payload);
     }
 
     return res.status(200).json({ message: "OK" });
