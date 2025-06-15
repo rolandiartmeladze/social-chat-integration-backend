@@ -21,6 +21,7 @@ export const getAllConversations = async (req: Request, res: Response) => {
       const { user, page } = splitParticipantsByRole(conv.participants, pageId);
       return {
         id: conv.customId,
+        conversationId: conv._id.toString(),
         platform: conv.platform,
         lastUpdated: conv.lastUpdated,
         unreadCount: conv.unreadCount,
