@@ -1,29 +1,35 @@
 import { Request, Response } from "express";
-import MessengerService from "../services/messengerService";
-import InstagramService from "../services/instagramService";
-import TelegramService from "../services/telegramService";
+import { Conversation } from "../models/Conversation";
+import { Message } from "../models/Message";
 
-export const getAllConversations = async (_req: Request, res: Response) => {
+export const getAllConversations = async (req: Request, res: Response) => {
   try {
-    const [messengerConvs, instagramConvs, telegramConvs ] = await Promise.all([
-      MessengerService.getConversations(),
-      InstagramService.getConversations(),
-      TelegramService.getConversations(),
-    ]);
+    const conversations = await Conversation.find()
+      .sort({ lastUpdated: -1 })
+      .populate({
+        path: "lastMessage",
+        select: "text sender timestamp"
+      })
+      .lean();
 
-    const allConversations = [
-      ...messengerConvs.map(c => ({ ...c, platform: "messenger" })),
-      ...instagramConvs.map(c => ({ ...c, platform: "instagram" })),
-      ...telegramConvs.map(c => ({ ...c, platform: "telegram" })),
-    ];
+    res.json(conversations);
+  } catch (err) {
+    console.error("Error fetching conversations", err);
+    res.status(500).json({ error: "Failed to fetch conversations" });
+  }
+};
 
-    allConversations.sort((a, b) => {
-      return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
-    });
+export const getMessagesForConversation = async (req: Request, res: Response) => {
+  const { conversationId } = req.params;
 
-    res.status(200).json({ conversations: allConversations });
-  } catch (error: any) {
-    console.error("Error fetching conversations:", error.message || error);
-    res.status(500).json({ error: "Failed to fetch conversations." });
+  try {
+    const messages = await Message.find({ conversationId })
+      .sort({ timestamp: 1 }) // older first
+      .lean();
+
+    res.json({ conversationId, messages });
+  } catch (err) {
+    console.error("Error fetching messages", err);
+    res.status(500).json({ error: "Failed to fetch messages" });
   }
 };
