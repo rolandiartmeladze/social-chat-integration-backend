@@ -1,6 +1,5 @@
 import { Conversation, IConversation, IParticipant } from "../models/Conversation";
 import { Message, IMessage } from "../models/Message";
-import { Types, Document } from "mongoose";
 
 interface UpdateConversationParams {
     customId: string;
@@ -42,7 +41,7 @@ export async function updateConversation({
         read: false,
     });
 
-    conversation.lastMessage = messageDoc._id as Types.ObjectId;
+    conversation.lastMessage = messageDoc._id;
     conversation.lastUpdated = timestamp;
     conversation.unreadCount += 1;
 

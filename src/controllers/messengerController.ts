@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import MessengerService from "../services/messengerService";
 import WebhookController from "./webhookController"
 import { IncomingMessagePayload } from "../types/types"
-import { updateConversation } from "../services/ConversationService";
+import { updateConversation } from "../services/conversationService";
 import dotenv from "dotenv";
 import { getFacebookPageInfo } from "../services/facebook.service";
 
