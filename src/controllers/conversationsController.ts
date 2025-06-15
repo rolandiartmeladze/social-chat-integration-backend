@@ -10,39 +10,31 @@ export const getAllConversations = async (req: Request, res: Response) => {
       .sort({ lastUpdated: -1 })
       .populate({
         path: "lastMessage",
-        select: "text sender timestamp"
+        select: "text sender timestamp",
       })
       .lean();
 
-    const { id: pageId } = await getFacebookPageInfo(process.env.FB_PAGE_ACCESS_TOKEN || "");
+    const accessToken = process.env.FB_PAGE_ACCESS_TOKEN || "";
+    const { id: pageId } = await getFacebookPageInfo(accessToken);
 
-    const formatted = await Promise.all(
-      conversations.map(async (conversation) => {
-        const { user, page } = splitParticipantsByRole(conversation.participants, pageId);
+    const enrichedConvs = conversations.map((conv) => {
+      const { user, page } = splitParticipantsByRole(conv.participants, pageId);
+      return {
+        id: conv.customId,
+        platform: conv.platform,
+        lastUpdated: conv.lastUpdated,
+        unreadCount: conv.unreadCount,
+        participants: { user, page },
+        lastMessage: conv.lastMessage,
+      };
+    });
 
-        const messages = await Message.find({ conversationId: conversation._id })
-          .sort({ timestamp: 1 })
-          .lean();
-
-        return {
-          id: conversation.customId,
-          platform: conversation.platform,
-          lastUpdated: conversation.lastUpdated,
-          unreadCount: conversation.unreadCount,
-          participants: { user, page },
-          messages,
-          lastMessage: conversation.lastMessage,
-        };
-      })
-    );
-
-    res.status(200).json(formatted);
+    res.json(enrichedConvs);
   } catch (err) {
     console.error("Error fetching conversations", err);
     res.status(500).json({ error: "Failed to fetch conversations" });
   }
 };
-
 export const getMessagesForConversation = async (req: Request, res: Response) => {
   const { conversationId } = req.params;
 

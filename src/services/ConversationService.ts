@@ -1,5 +1,5 @@
 import { Conversation, IConversation, IParticipant } from "../models/Conversation";
-import { Message, IMessage } from "../models/Message";
+import { Message } from "../models/Message";
 
 interface UpdateConversationParams {
     customId: string;
