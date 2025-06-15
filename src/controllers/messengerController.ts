@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import MessengerService from "../services/messengerService";
 import WebhookController from "./webhookController"
-import { IncomingMessagePayload } from "../types/types"
 import { updateConversation } from "../services/conversationService";
 import dotenv from "dotenv";
 import { getFacebookPageInfo } from "../services/facebook.service";
@@ -42,8 +41,8 @@ export default class MessengerController {
         const text = event.message?.text;
 
         if (!senderId || !text || !timestamp) continue;
-
-        const userId = senderId === pageId ? recipientId : senderId;
+        const isFromPage = senderId === pageId;
+        const userId = isFromPage ? recipientId : senderId;
         if (!userId) continue;
 
         const sortedIds = [userId, pageId].sort();
