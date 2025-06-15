@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import MessengerService from "../services/messengerService";
 import WebhookController from "./webhookController"
 import { IncomingMessagePayload } from "../types/types"
+import { updateConversation } from "../services/ConversationService";
+
 
 type Message = { sender: string; text: string; timestamp: string };
 
@@ -22,35 +24,48 @@ export default class MessengerController {
     return res.sendStatus(403);
   }
 
- static async receiveWebhook(req: Request, res: Response) {
-  const body = req.body;
-  if (body.object !== "page") return res.sendStatus(404);
+  static async receiveWebhook(req: Request, res: Response) {
+    const body = req.body;
+    if (body.object !== "page") return res.sendStatus(404);
 
-  for (const entry of body.entry || []) {
-    for (const event of entry.messaging || []) {
-      const senderId = event.sender?.id;
-      const text = event.message?.text;
-      const timestamp = event.timestamp;
-      const conversationId = `messenger-${senderId}`; // მაგალითად
-      const username = event.sender?.name || "unknown";
+    for (const entry of body.entry || []) {
+      for (const event of entry.messaging || []) {
+        const senderId = event.sender?.id;
+        const text = event.message?.text;
+        const timestamp = event.timestamp;
+        const recipientId = event.recipient?.id;
+        const conversationId = `messenger-${senderId}-${recipientId}`; 
+        const username = event.sender?.name || "unknown";
 
-      if (senderId && text) {
-        console.log("📥 Messenger message:", { senderId, text });
-        WebhookController.handleIncomingMessage({
-          conversationId,
-          platform: "messenger",
-          senderId,
-          username,
-          text,
-          timestamp,
-        });
+        if (senderId && text) {
+          console.log("📥 Messenger message:", { senderId, text });
+          WebhookController.handleIncomingMessage({
+            conversationId,
+            platform: "messenger",
+            senderId,
+            username,
+            text,
+            timestamp,
+          });
+
+          await updateConversation({
+            customId: conversationId,
+            platform: "messenger",
+            sender: { id: senderId, name: username },
+            text,
+            timestamp: new Date(timestamp),
+          });
+
+        }
       }
     }
+
+    return res.status(200).send("EVENT_RECEIVED");
   }
 
-  return res.status(200).send("EVENT_RECEIVED");
-}
-
+  static getMessages(_req: Request, res: Response) {
+    return res.status(200).json({ messages });
+  }
 
   static async sendMessageFromFrontend(req: Request, res: Response) {
     const { sender, text } = req.body;
