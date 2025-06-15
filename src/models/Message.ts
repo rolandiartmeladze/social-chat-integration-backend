@@ -1,7 +1,7 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 
 export interface IMessage extends Document {
-  conversationId: Schema.Types.ObjectId;
+  conversationId: Types.ObjectId;
   sender: {
     id: string;
     name: string;
@@ -10,20 +10,20 @@ export interface IMessage extends Document {
   text: string;
   timestamp: Date;
   read: boolean;
-  taskId?: Schema.Types.ObjectId;
+  taskId?: Types.ObjectId;
 }
 
 const MessageSchema = new Schema<IMessage>({
-  conversationId: { type: Schema.Types.ObjectId, ref: "Conversation", required: true, index: true },
+  conversationId: { type: Schema.Types.ObjectId, ref: "Conversation", required: true },
   sender: {
     id: { type: String, required: true },
     name: { type: String, required: true },
     avatarUrl: { type: String },
   },
   text: { type: String, required: true },
-  timestamp: { type: Date, required: true },
+  timestamp: { type: Date, default: Date.now },
   read: { type: Boolean, default: false },
   taskId: { type: Schema.Types.ObjectId, ref: "Task" },
-});
+}, { timestamps: true });
 
 export const Message = model<IMessage>("Message", MessageSchema);
