@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import MessengerService from "../services/messengerService";
 import WebhookController from "./webhookController"
 import { IncomingMessagePayload } from "../types/types"
+import { updateConversation } from "../services/ConversationService";
+
 
 type Message = { sender: string; text: string; timestamp: string };
 
@@ -31,7 +33,8 @@ export default class MessengerController {
         const senderId = event.sender?.id;
         const text = event.message?.text;
         const timestamp = event.timestamp;
-        const conversationId = `messenger-${senderId}`; // მაგალითად
+        const recipientId = event.recipient?.id;
+        const conversationId = `messenger-${senderId}-${recipientId}`; 
         const username = event.sender?.name || "unknown";
 
         if (senderId && text) {
@@ -44,13 +47,22 @@ export default class MessengerController {
             text,
             timestamp,
           });
+
+          await updateConversation({
+            customId: conversationId,
+            platform: "messenger",
+            sender: { id: senderId, name: username },
+            text,
+            timestamp: new Date(timestamp),
+          });
+
         }
       }
     }
 
     return res.status(200).send("EVENT_RECEIVED");
   }
-  
+
   static getMessages(_req: Request, res: Response) {
     return res.status(200).json({ messages });
   }
