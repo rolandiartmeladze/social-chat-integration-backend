@@ -30,50 +30,33 @@ export default class MessengerController {
   static async receiveWebhook(req: Request, res: Response) {
     const body = req.body;
     if (body.object !== "page") return res.sendStatus(404);
-    const accessToken = process.env.FB_PAGE_ACCESS_TOKEN || "";
 
+    const accessToken = process.env.FB_PAGE_ACCESS_TOKEN || "";
     const { id: pageId, name: pageName } = await getFacebookPageInfo(accessToken);
 
     for (const entry of body.entry || []) {
       for (const event of entry.messaging || []) {
         const senderId = event.sender?.id;
-        const text = event.message?.text;
-        const timestamp = event.timestamp;
         const recipientId = event.recipient?.id;
+        const timestamp = event.timestamp;
+        const text = event.message?.text;
+
+        if (!senderId || !text || !timestamp) continue;
+
+        const userId = senderId === pageId ? recipientId : senderId;
+        if (!userId) continue;
+
+        const sortedIds = [userId, pageId].sort();
+        const conversationId = `messenger-${sortedIds.join("-")}`;
         const username = event.sender?.name || "unknown";
-        let userId: string;
-      if (senderId === pageId) {
-        userId = recipientId;
-      } else if (recipientId === pageId) {
-        userId = senderId;
-      } else {
-        console.warn("page not found:", { senderId, recipientId, pageId });
-        continue;
-      }
 
-      const sortedIds = [userId, pageId].sort();
-      const conversationId = `messenger-${sortedIds.join("-")}`;
-
-        if (senderId && text) {
-          console.log("📥 Messenger message:", { senderId, text });
-          WebhookController.handleIncomingMessage({
-            conversationId,
-            platform: "messenger",
-            senderId,
-            username,
-            text,
-            timestamp,
-          });
-
-          await updateConversation({
-            customId: conversationId,
-            platform: "messenger",
-            sender: { id: senderId, name: username },
-            text,
-            timestamp: new Date(timestamp),
-          });
-
-        }
+        await updateConversation({
+          customId: conversationId,
+          platform: "messenger",
+          sender: { id: senderId, name: username },
+          text,
+          timestamp: new Date(timestamp),
+        });
       }
     }
 
