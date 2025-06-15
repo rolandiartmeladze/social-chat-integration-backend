@@ -1,4 +1,6 @@
-import { Conversation, IConversation, IParticipant, IMessage } from "../models/Conversation";
+import { Conversation, IConversation, IParticipant } from "../models/Conversation";
+import { Message, IMessage } from "../models/Message";
+import { Types, Document } from "mongoose";
 
 interface UpdateConversationParams {
     customId: string;
@@ -15,68 +17,35 @@ export async function updateConversation({
     text,
     timestamp,
 }: UpdateConversationParams): Promise<IConversation> {
+    let conversation = await Conversation.findOne({ customId });
 
-    const existingConversation = await Conversation.findOne({ customId });
-
-    if (existingConversation) {
-        const updated = await insertMessageInConversation(existingConversation, sender, text, timestamp);
-        return updated;
-    } else {
-        const newConv = await createConversation({ customId, platform, sender, text, timestamp });
-        return newConv;
+    if (!conversation) {
+        conversation = await Conversation.create({
+            customId,
+            platform,
+            participants: [sender],
+            lastUpdated: timestamp,
+            unreadCount: 1,
+            status: "open",
+        });
     }
-}
 
-async function insertMessageInConversation(
-    conversation: IConversation,
-    sender: IParticipant,
-    text: string,
-    timestamp: Date
-): Promise<IConversation> {
-    const message: IMessage = {
-        senderId: sender.id,
-        text,
-        timestamp,
-        read: false,
-    };
-
-    conversation.messages.push(message);
-    conversation.lastUpdated = timestamp;
-    conversation.unreadCount += 1;
-
-    const existing = conversation.participants.find(p => p.id === sender.id);
-    if (!existing) {
+    if (!conversation.participants.some(p => p.id === sender.id)) {
         conversation.participants.push(sender);
     }
 
-    await conversation.save();
-    return conversation;
-}
-
-async function createConversation({
-    customId,
-    platform,
-    sender,
-    text,
-    timestamp,
-}: UpdateConversationParams): Promise<IConversation> {
-    const message: IMessage = {
-        senderId: sender.id,
+    const messageDoc = await Message.create({
+        conversationId: conversation._id,
+        sender,
         text,
         timestamp,
         read: false,
-    };
-
-    const newConv = new Conversation({
-        customId,
-        platform,
-        participants: [sender],
-        messages: [message],
-        lastUpdated: timestamp,
-        unreadCount: 1,
-        status: "open",
     });
 
-    await newConv.save();
-    return newConv;
+    conversation.lastMessage = messageDoc._id as Types.ObjectId;
+    conversation.lastUpdated = timestamp;
+    conversation.unreadCount += 1;
+
+    await conversation.save();
+    return conversation;
 }
