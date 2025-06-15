@@ -13,7 +13,7 @@ import conversations from "./routes/conversations"
 import passport from "passport";
 import session from "express-session";
 import authRouter from "./routes/auth";
-import { connectDB } from './db';
+import { connectDB } from './utility/db';
 import { Conversation } from './models/Conversation';
 
 dotenv.config();
