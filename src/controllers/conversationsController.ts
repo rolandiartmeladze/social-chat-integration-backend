@@ -20,8 +20,8 @@ export const getAllConversations = async (req: Request, res: Response) => {
     const enrichedConvs = conversations.map((conv) => {
       const { user, page } = splitParticipantsByRole(conv.participants, pageId);
       return {
-        id: conv.customId,
-        conversationId: conv._id.toString(),
+        id: conv._id.toString(),
+        customId: conv.customId,
         platform: conv.platform,
         lastUpdated: conv.lastUpdated,
         unreadCount: conv.unreadCount,
@@ -40,7 +40,7 @@ export const getMessagesForConversation = async (req: Request, res: Response) =>
   const { conversationId } = req.params;
 
   try {
-    const conversation = await Conversation.findOne({ customId: conversationId }).lean();
+    const conversation = await Conversation.findOne({ _id: conversationId }).lean();
     if (!conversation) return res.sendStatus(404);
 
     const { id: pageId } = await getFacebookPageInfo(process.env.FB_PAGE_ACCESS_TOKEN || "");
@@ -52,7 +52,7 @@ export const getMessagesForConversation = async (req: Request, res: Response) =>
       .lean();
 
     res.json({
-      id: conversation.customId,
+      id: conversation.id,
       platform: conversation.platform,
       lastUpdated: conversation.lastUpdated,
       unreadCount: conversation.unreadCount,
