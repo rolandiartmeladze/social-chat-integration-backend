@@ -48,7 +48,7 @@ export const getMessagesForConversation = async (req: Request, res: Response) =>
     const { user, page } = splitParticipantsByRole(conversation.participants, pageId);
 
     const messages = await Message.find({ conversationId: conversation._id })
-      .sort({ timestamp: 1 })
+      .sort({ timestamp: -1 })
       .lean();
 
     res.json({

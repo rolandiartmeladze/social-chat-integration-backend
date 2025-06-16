@@ -49,7 +49,7 @@ export async function updateConversation({
     await conversation.save();
 
     io.emit("conversationUpdated", {
-        customId,
+        customId: conversation._id,
         platform,
         text,
         timestamp,
