@@ -1,5 +1,6 @@
 import { Conversation, IConversation, IParticipant } from "../models/Conversation";
 import { Message } from "../models/Message";
+import { io } from "../socket";
 
 interface UpdateConversationParams {
     customId: string;
@@ -46,5 +47,14 @@ export async function updateConversation({
     conversation.unreadCount += 1;
 
     await conversation.save();
+
+    io.emit("conversationUpdated", {
+        customId,
+        platform,
+        text,
+        timestamp,
+        sender,
+    });
+
     return conversation;
 }
