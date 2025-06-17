@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import TelegramService from "../services/telegramService";
+import { updateConversation } from "../services/conversationService";
 import { TelegramUpdate } from "../types/types";
 
 type Message = {
@@ -14,8 +15,8 @@ export default class TelegramController {
   static async receiveWebhook(req: Request, res: Response): Promise<Response> {
     const secret = req.header("X-Telegram-Bot-Api-Secret-Token");
     if (!secret || secret !== process.env.TELEGRAM_SECRET_TOKEN) {
-      console.warn("Invalid or missing secret token.");
-      return res.status(403).json({ error: "Forbidden: Invalid secret token" });
+      console.warn("Blocked request with invalid secret.");
+      return res.status(403).json({ error: "Invalid secret token" });
     }
 
     const update: TelegramUpdate = req.body;
@@ -23,24 +24,30 @@ export default class TelegramController {
     const from = update?.message?.from;
     const username = from?.username || from?.first_name || "Guest";
     const text = update?.message?.text;
-
+    const timestamp = new Date((update.message?.date ?? Date.now() / 1000) * 1000);
     console.log(`📨 Message from ${username} (chatId: ${chatId}): ${text}`);
 
+
     if (chatId && text) {
-      const newMsg: Message = {
-        sender: username,
-        text,
-        timestamp: new Date(
-          (update.message?.date ?? Date.now() / 1000) * 1000
-        ).toISOString(),
-      };
-
-      TelegramController.messages.push(newMsg);
-
       try {
+        const sender = {
+          id: String(chatId),
+          name: username,
+        };
+
+        const customId = `telegram-${chatId}`;
+
+        await updateConversation({
+          customId,
+          platform: "telegram",
+          sender,
+          text,
+          timestamp,
+        });
+
         await TelegramService.sendMessage(chatId, `შენ დაწერე: ${text}`);
       } catch (err) {
-        console.error("Failed to send message:", err);
+        console.error("Failed to process Telegram message:", err);
       }
     }
 

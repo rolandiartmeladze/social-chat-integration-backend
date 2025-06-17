@@ -85,4 +85,22 @@ export default class TelegramService {
     }
   }
 
+  static async setWebhook() {
+    const url = `${TELEGRAM_API}/setWebhook`;
+    const webhookUrl = `${process.env.BACKEND_URL}/telegram/webhook`;
+    const secretToken = process.env.TELEGRAM_SECRET_TOKEN;
+
+    const res = await axios.post(url, {
+      url: webhookUrl,
+      secret_token: secretToken,
+    });
+
+    return res.data;
+  }
+
+  static async deleteWebhook() {
+    const url = `${TELEGRAM_API}/deleteWebhook`;
+    const res = await axios.get(url);
+    return res.data;
+  }
 }
