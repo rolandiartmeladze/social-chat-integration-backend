@@ -45,7 +45,7 @@ export default class TelegramController {
           timestamp,
         });
 
-        await TelegramService.sendMessage(chatId, `შენ დაწერე: ${text}`);
+        await TelegramService.sendMessage(chatId, `შენი შეტყობინება მიღებული ჩვენ მალე გიპასუხებთ`);
       } catch (err) {
         console.error("Failed to process Telegram message:", err);
       }
