@@ -1,97 +1,183 @@
-# 📡 Qualification Project - Backend Server
+# 📡 Social Chat Integration Backend
 
-This is the backend part of a full-stack web application built with **Node.js**, **Express.js**, and **TypeScript**. The server is designed to receive and process messages from **Messenger**, **Instagram**, and **Telegram** using **webhooks** and forward them to the frontend.
+This is the **backend server** for a multi-platform social chat integration system. It enables users to connect their **Messenger**, **Telegram**, and **Instagram** accounts, view and manage conversations in real-time, and communicate across all channels from a unified dashboard.
+
+> ✅ Built with **Node.js**, **TypeScript**, **Express**, **MongoDB**, **Socket.IO**, and secured with **Google OAuth2**.
 
 ---
 
-## 🚀 Key Features
+## 🚀 Features
 
-- Webhook integration for Messenger, Instagram, and Telegram
-- Token-based verification for authorized message handling
-- `GET /webhook` endpoint for initial webhook verification
-- `POST /webhook` to receive real-time messages from verified platforms
-- Support for retrieving conversation data (Messenger and Instagram)
-- Telegram bot receives messages and stores them in memory (temporary)
-- Echo-response system for testing auto-replies
-- Ability to send messages using `POST /send-message` with `conversation_id` and `text`
+* 🔐 Google OAuth2 authentication
+* 💬 Unified conversation handling from Messenger, Telegram (Instagram pending)
+* 🧠 Smart participant detection per platform
+* 🗃️ MongoDB-powered message and conversation storage
+* 📡 Webhook support for Messenger & Telegram
+* 🧵 Real-time updates with Socket.IO
+* 🔄 Conversation synchronization and unread count tracking
+* 📁 Modular structure with services, controllers, routes, and models
 
 ---
 
 ## 📁 Project Structure
 
-
----
-
-## 🛠️ Tech Stack
-
-- Node.js + Express.js
-- TypeScript
-- CORS
-- dotenv
-- ts-node + nodemon (for development)
-
----
-
-## 🧪 Current Status
-
-- The project is in **testing mode**
-- **MongoDB** is not yet integrated – messages are temporarily stored in memory
-- **Security features** like JWT are planned but not yet implemented
-- The server currently handles only **authenticated users’ messages** and conversations
-
----
-
-## 🔐 Planned Enhancements
-
-- Add JWT-based user authentication
-- Integrate MongoDB for message and conversation storage
-- Expand webhook support to handle posts, products, and other details
-- Advanced auto-reply logic and customizable message templates
-
----
-
-## ⚙️ Installation & Usage
-
 ```bash
-# Clone the repository
-git clone <repo-url>
-
-# Navigate to backend folder
-cd <repo name>
-
-# Install dependencies
-npm install
-
-# Run in development mode
-npm run dev
-
-# Build the project
-npm run build
-
-# Start the server
-npm start
-
-
+src/
+├── auth/                  # Google OAuth configuration
+├── controllers/           # REST and webhook controllers for each platform
+├── models/                # Mongoose schemas for Conversation and Message
+├── routes/                # Express routers for auth, Messenger, Telegram...
+├── services/              # Logic for handling platform-specific APIs
+├── socket.ts              # Real-time Socket.IO setup
+├── index.ts               # Main server entry
+├── utility/               # Helpers: participant parsing, message formatting
+├── types/                 # TypeScript interfaces and types
+└── .env                   # Secrets and API keys (excluded from Git)
 ```
 
---- 
+---
 
-## 📄 Environment Variables (.env example)
+## 🔐 Authentication Flow
 
-- PORT=5000
-- MESSENGER_VERIFY_TOKEN=your_verification_token
-- INSTAGRAM_VERIFY_TOKEN=your_verification_token
-- TELEGRAM_VERIFY_TOKEN=your_verification_token
-- ACCESS_TOKEN=your_access_token
-- INSTAGRAM_PAGE_ID=you_page_id
+* Uses `passport-google-oauth20` to authenticate users
+* Stores session data in secure, SameSite `express-session` cookies
+* Auth state shared securely between backend and frontend (via HTTPS)
 
---- 
+---
 
-## 📌 Notes
+## ⚙️ Environment Configuration (`.env`)
 
-- This backend is intended for internal testing and does not yet implement full production-level security.
+```dotenv
+# General
+PORT=5000
+BACKEND_URL=https://your-backend-url.com
+FRONTEND_URL=https://your-frontend-url.com
 
-- Only verified users can send or receive messages through the system.
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_secret
+COOKIE_SECRET=your_session_cookie_secret
 
-- Telegram currently supports only message receiving; conversations are not yet supported.
+# Messenger
+FB_PAGE_ACCESS_TOKEN=your_page_token
+FB_API_URL=https://graph.facebook.com/v16.0
+VERIFY_TOKEN=your_webhook_verify_token
 
+# Telegram
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_SECRET_TOKEN=your_webhook_secret_token
+```
+
+> ⚠️ Never commit this file – always use `.gitignore`
+
+---
+
+## 🌐 Webhook Configuration
+
+### Messenger
+
+* Facebook App → Webhooks → `https://<backend-url>/messenger/webhook`
+* Verify token must match `VERIFY_TOKEN`
+* Page access token must be generated and added to `.env`
+
+### Telegram
+
+* Uses secure webhook via `setWebhook` API
+* Your bot must call `TelegramService.setWebhook()` once
+* Incoming messages validated via `X-Telegram-Bot-Api-Secret-Token`
+
+---
+
+## 💡 Real-Time Updates with Socket.IO
+
+* `initSocket(httpServer)` initializes bidirectional communication
+* Each message update emits a `conversationUpdated` event to connected clients
+* Used in frontend to live-refresh conversation UI
+
+---
+
+## 📌 API Overview
+
+### `GET /conversations`
+
+Returns all conversations (sorted by lastUpdated)
+
+### `GET /conversations/:conversationId/messages`
+
+Returns messages for a given conversation ID
+
+### `POST /messenger/send`
+
+Send a message through Messenger
+
+### `POST /telegram/send`
+
+Send a message through Telegram
+
+### `GET /auth/google`
+
+Initiates Google login
+
+### `GET /auth/google/callback`
+
+OAuth2 redirect endpoint
+
+---
+
+## 🛠️ Setup Instructions (Local)
+
+```bash
+git clone https://github.com/rolandiartmeladze/social-chat-integration-backend.git
+cd social-chat-integration-backend
+pnpm install
+
+# Create your .env file
+cp .env.example .env
+
+# Start the server
+tsc && node dist/index.js
+# or for development
+tsx src/index.ts
+```
+
+---
+
+## 🧪 Development Tips
+
+* Use `ts-node` or `tsx` for hot-reloading during development
+* Webhook verification requires HTTPS or tunneling (use [ngrok](https://ngrok.com/))
+* Use MongoDB Atlas or local MongoDB
+* Log requests/errors using middleware or Winston (optional)
+
+---
+
+## 🤖 Powered Platforms
+
+| Platform  | Receive Messages | Send Messages | Webhook Status |
+| --------- | ---------------- | ------------- | -------------- |
+| Messenger | ✅ Yes            | ✅ Yes         | ✅ Verified     |
+| Telegram  | ✅ Yes            | ✅ Yes         | ✅ Verified     |
+| Instagram | ⏳ In Progress    | ⏳ Planned     | ⏳ Planned      |
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE)
+
+---
+
+## ✨ Acknowledgements
+
+* [Facebook Graph API](https://developers.facebook.com/docs/graph-api/)
+* [Telegram Bot API](https://core.telegram.org/bots/api)
+* [Passport.js](http://www.passportjs.org/)
+* [Socket.IO](https://socket.io/)
+
+---
+
+## 👨‍💻 Maintainer
+
+Built with ❤️ by **Roland Artmeladze**
+
+Feel free to contribute, suggest improvements, or raise issues!

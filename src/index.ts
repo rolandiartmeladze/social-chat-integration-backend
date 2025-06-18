@@ -1,8 +1,11 @@
+// [DEVELOPER REVIEW]
+// პროექტის მთავარი entry point. აქ ხდება ძირითადი სერვისების ინიციალიზაცია და როუტინგის კონფიგურაცია.
+
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import bodyParser from "body-parser";
-import './auth/googleAuth';
+import './auth/googleAuth'; // [REVIEW] Google OAuth-ის კონფიგურაცია, ინიციალიზაცია მოდულურად გამოყოფილია, რაც კარგია.
 
 import { createServer } from "http";
 import { initSocket } from "./socket";
@@ -16,57 +19,54 @@ import authRouter from "./routes/auth";
 import { connectDB } from './utility/db';
 import { Conversation } from './models/Conversation';
 
-dotenv.config();
+dotenv.config(); // [REVIEW] .env ფაილიდან კონფიგურაციის ჩატვირთვა საუკეთესო პრაქტიკაა.
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const httpServer = createServer(app);
-initSocket(httpServer);
+initSocket(httpServer); // [REVIEW] Socket.io-ს ინიციალიზაცია ცალკე ფუნქციაშია, რაც არქიტექტურულად გამართულია.
 
 app.use(express.json());
-app.use(bodyParser.json());
+app.use(bodyParser.json()); // [REVIEW] ორივე json parser-ის გამოყენება შეიძლება ზედმეტია, express უკვე შეიცავს body-parser-ს.
 
 app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true,
-}));
+})); // [REVIEW] CORS-ის კონფიგურაცია დინამიურად .env-დან, რაც უსაფრთხოების და მოქნილობისთვის კარგია.
 
-app.set("trust proxy", 1);
+app.set("trust proxy", 1); // [REVIEW] აუცილებელია თუ იყენებ პროქსის (მაგ. Heroku, Vercel).
+
 app.use(session({
-
   secret: process.env.COOKIE_SECRET as string,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true,
+    secure: true, // [REVIEW] მხოლოდ HTTPS-ზე მუშაობს, dev გარემოში შეიძლება პრობლემები გამოიწვიოს.
     httpOnly: true,
     sameSite: 'none'
   }
-}));
+})); // [REVIEW] session-ის კონფიგურაცია უსაფრთხოების საუკეთესო პრაქტიკებს მიყვება.
 
 app.use(passport.initialize());
-app.use(passport.session());
+app.use(passport.session()); // [REVIEW] Passport-ის ინტეგრაცია session-თან სწორადაა გაკეთებული.
 
 app.use("/messenger", messengerRouter);
 app.use("/instagram", instagramRouter);
 app.use('/telegram', telegramRouter);
 app.use('/conversations', conversations);
-app.use('/auth', authRouter);
-
+app.use('/auth', authRouter); // [REVIEW] როუტერები მოდულებადაა გამოყოფილი, რაც კოდის სტრუქტურას აუმჯობესებს.
 
 httpServer.listen(process.env.PORT || 3001, () =>
   console.log("Server listening")
-);
+); // [REVIEW] პორტის არჩევა .env-დან მოქნილი და სწორი მიდგომაა.
 
 (async () => {
-  await connectDB();
+  await connectDB(); // [REVIEW] ბაზასთან დაკავშირება ასინქრონულად ხდება, რაც თავიდან იცილებს race condition-ებს.
 
   app.get("/", (_req, res) => {
-    res.send("გამარჯობა  მოგესალმებით Backend სერვერიდან რომელიც აბრუნებს შეტყობინებებს და მესენჯერ, ინსტაგრამ, ტელეგრამ  ჩათებიდან და საშუალებას აძლებს მომხმარებელს გაგზავნოს შესაბამისი მოთხოვნა გვერდზე --  TypeScript + Node.js app.");
+    res.send("გამარჯობა  მოგესალმებით Backend სერვერიდან რომელიც აბრუნებს შეტყობინებებს და მესენჯერ, ინსტაგრამ, ტელეგრამ  ჩათებიდან და საშუალებას აძლევს მომხმარებელს გაგზავნოს შესაბამისი მოთხოვნა გვერდზე --  TypeScript + Node.js app.");
   });
-})();
-
-
+})(); // [REVIEW] root როუტი ინიციალიზაციის შემდეგ ინახება, რაც შეიძლება გაუგებარი იყოს თუ connectDB ვერ შესრულდა.
 
 app.get('/test-conversations', async (req, res) => {
   try {
@@ -75,4 +75,13 @@ app.get('/test-conversations', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch conversations' });
   }
-});
+}); // [REVIEW] ტესტირების როუტი, რომელიც ყველა conversation-ს აბრუნებს. რეკომენდირებულია dev-only გარემოში იყოს ხელმისაწვდომი.
+
+
+// [SUMMARY]
+// საერთო ჯამში, არქიტექტურა სწორია: მოდულური სტრუქტურა, უსაფრთხოების პარამეტრები, .env გამოყენება და სერვისების ინიციალიზაცია. 
+// რეკომენდაცია: 
+// - dev/prod გარემოსთვის session cookie-ს პარამეტრების დიფერენცირება.
+// - body-parser-ის დუბლირების მოცილება.
+// - ტესტირების როუტების dev-only რეჟიმში გადატანა.
+// - root როუტის ინიციალიზაცია app.get("/", ...) პირდაპირი გამოძახებით, არა async ფუნქციის შიგნით.
