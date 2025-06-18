@@ -121,3 +121,21 @@ Initiates Google login
 ### `GET /auth/google/callback`
 
 OAuth2 redirect endpoint
+
+---
+
+## 🛠️ Setup Instructions (Local)
+
+```bash
+git clone https://github.com/rolandiartmeladze/social-chat-integration-backend.git
+cd social-chat-integration-backend
+pnpm install
+
+# Create your .env file
+cp .env.example .env
+
+# Start the server
+tsc && node dist/index.js
+# or for development
+tsx src/index.ts
+```
