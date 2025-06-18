@@ -139,3 +139,12 @@ tsc && node dist/index.js
 # or for development
 tsx src/index.ts
 ```
+
+---
+
+## 🧪 Development Tips
+
+* Use `ts-node` or `tsx` for hot-reloading during development
+* Webhook verification requires HTTPS or tunneling (use [ngrok](https://ngrok.com/))
+* Use MongoDB Atlas or local MongoDB
+* Log requests/errors using middleware or Winston (optional)
