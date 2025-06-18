@@ -93,3 +93,31 @@ TELEGRAM_SECRET_TOKEN=your_webhook_secret_token
 * `initSocket(httpServer)` initializes bidirectional communication
 * Each message update emits a `conversationUpdated` event to connected clients
 * Used in frontend to live-refresh conversation UI
+
+---
+
+## 📌 API Overview
+
+### `GET /conversations`
+
+Returns all conversations (sorted by lastUpdated)
+
+### `GET /conversations/:conversationId/messages`
+
+Returns messages for a given conversation ID
+
+### `POST /messenger/send`
+
+Send a message through Messenger
+
+### `POST /telegram/send`
+
+Send a message through Telegram
+
+### `GET /auth/google`
+
+Initiates Google login
+
+### `GET /auth/google/callback`
+
+OAuth2 redirect endpoint
