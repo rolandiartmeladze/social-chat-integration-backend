@@ -8,6 +8,7 @@ interface UpdateConversationParams {
     sender: IParticipant;
     text: string;
     timestamp: Date;
+    participants?: IParticipant[];
 }
 
 export async function updateConversation({
@@ -16,6 +17,7 @@ export async function updateConversation({
     sender,
     text,
     timestamp,
+    participants,
 }: UpdateConversationParams): Promise<IConversation> {
     let conversation = await Conversation.findOne({ customId });
 
@@ -23,7 +25,7 @@ export async function updateConversation({
         conversation = await Conversation.create({
             customId,
             platform,
-            participants: [sender],
+            participants: participants || [sender],
             lastUpdated: timestamp,
             unreadCount: 1,
             status: "open",

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import MessengerService from "../services/messengerService";
-import WebhookController from "./webhookController"
+import { getParticipants } from "../utility/getParticipants";
 import { updateConversation } from "../services/conversationService";
 import dotenv from "dotenv";
 import { getFacebookPageInfo } from "../services/facebook.service";
@@ -47,14 +47,20 @@ export default class MessengerController {
 
         const sortedIds = [userId, pageId].sort();
         const conversationId = `messenger-${sortedIds.join("-")}`;
-        const username = event.sender?.name || "unknown";
+
+        const rawParticipants = [
+          { id: senderId, name: event.sender?.name },
+          { id: recipientId, name: event.recipient?.name },
+        ];
+        const participants = await getParticipants(rawParticipants, pageId, accessToken);
 
         await updateConversation({
           customId: conversationId,
           platform: "messenger",
-          sender: { id: senderId, name: username },
+          sender: isFromPage ? participants.page : participants.user,
           text,
           timestamp: new Date(timestamp),
+          participants: [participants.user, participants.page],
         });
       }
     }
