@@ -52,48 +52,6 @@ export default class TelegramService {
   }
 
 
-  static async getConversations() {
-    try {
-      const user = {
-        id: "tg_user_123",
-        name: "Test Telegram User",
-        avatarUrl: null,
-      };
-
-      const page = {
-        id: "telegram_page_id",
-        name: "Telegram Bot",
-        avatarUrl: null,
-      };
-
-      const messages = [
-        {
-          id: "msg_001",
-          senderId: user.id,
-          text: "გამარჯობა სატესტო მესიჯით!",
-          timestamp: new Date().toISOString(),
-        },
-      ];
-
-      const testConversation = [
-        {
-          conversationId: "telegram-001",
-          participants: { user, page },
-          messages,
-          lastUpdated: messages[0].timestamp,
-          platform: "telegram",
-          unreadCount: "0",
-        },
-      ];
-
-      console.log("Telegram test conversation loaded");
-      return testConversation;
-    } catch (error: any) {
-      console.error("Telegram getConversations error:", error.message);
-      throw new Error("Failed to fetch Telegram conversations");
-    }
-  }
-
   static async setWebhook() {
     const url = `${TELEGRAM_API}/setWebhook`;
     const webhookUrl = `${process.env.BACKEND_URL}/telegram/webhook`;

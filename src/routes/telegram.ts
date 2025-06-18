@@ -5,6 +5,7 @@ import TelegramService from "../services/telegramService";
 const router = express.Router();
 
 router.post("/webhook", TelegramController.receiveWebhook);
+router.post("/send", TelegramController.sendMessage);
 
 router.get("/setWebhook", async (_req, res) => {
   const resData = await TelegramService.setWebhook();

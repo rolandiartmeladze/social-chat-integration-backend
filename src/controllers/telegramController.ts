@@ -60,4 +60,18 @@ export default class TelegramController {
       return res.status(500).json({ error: "Internal server error" });
     }
   }
+
+  static async sendMessage(req: Request, res: Response): Promise<Response> {
+    try {
+      const { sender, text } = req.body;
+      if (!sender || !text) {
+        return res.status(400).json({ error: "Missing sender or text" });
+      }
+      await TelegramService.sendMessage(sender, text);
+      return res.status(200).json({ message: "Message sent to Telegram" });
+    } catch (error) {
+      console.error("Telegram sendMessage error:", error);
+      return res.status(500).json({ error: "Failed to send Telegram message" });
+    }
+  }
 }

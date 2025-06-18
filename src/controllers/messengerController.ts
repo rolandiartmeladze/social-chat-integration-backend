@@ -9,7 +9,6 @@ dotenv.config();
 
 type Message = { sender: string; text: string; timestamp: string };
 
-export const messages: Message[] = [];
 export default class MessengerController {
 
   static verifyWebhook(req: Request, res: Response) {
@@ -68,22 +67,16 @@ export default class MessengerController {
     return res.status(200).send("EVENT_RECEIVED");
   }
 
-  static getMessages(_req: Request, res: Response) {
-    return res.status(200).json({ messages });
-  }
 
   static async sendMessageFromFrontend(req: Request, res: Response) {
     const { sender, text } = req.body;
-
     if (!sender || !text) {
       return res
         .status(400)
         .json({ error: "Sender ID and text are required." });
     }
-
     try {
       await MessengerService.sendMessage(sender, text);
-      messages.push({ sender, text, timestamp: new Date().toISOString() });
       res.status(200).json({ message: "Message sent successfully." });
     } catch (error) {
       console.error("Failed to send message:", error);
