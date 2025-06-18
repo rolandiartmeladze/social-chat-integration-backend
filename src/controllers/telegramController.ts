@@ -26,6 +26,7 @@ export default class TelegramController {
     const text = update?.message?.text;
     const timestamp = new Date((update.message?.date ?? Date.now() / 1000) * 1000);
     console.log(`📨 Message from ${username} (chatId: ${chatId}): ${text}`);
+    console.log(`update: ${update}`);
 
 
     if (chatId && text) {
