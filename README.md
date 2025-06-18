@@ -158,3 +158,9 @@ tsx src/index.ts
 | Messenger | ✅ Yes            | ✅ Yes         | ✅ Verified     |
 | Telegram  | ✅ Yes            | ✅ Yes         | ✅ Verified     |
 | Instagram | ⏳ In Progress    | ⏳ Planned     | ⏳ Planned      |
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE)
