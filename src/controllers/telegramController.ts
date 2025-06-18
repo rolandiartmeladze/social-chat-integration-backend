@@ -20,19 +20,17 @@ export default class TelegramController {
         return res.status(400).json({ error: "Missing message in update" });
       }
 
-      const chat = message.chat;
       const from = message.from;
       const text = message.text;
       const timestamp = new Date((message.date ?? Date.now() / 1000) * 1000);
 
       const userId = from?.id;
-      const chatId = chat?.id;
 
-      if (!userId || !chatId || !text) {
+      if (!userId || !text) {
         return res.status(400).json({ error: "Missing required data" });
       }
 
-      const customId = `telegram-${userId}-${chatId}`;
+      const customId = `telegram-${userId}`;
       const username = from?.username || from?.first_name || "Unknown User";
 
       const user: IParticipant = {
@@ -40,27 +38,20 @@ export default class TelegramController {
         name: username,
         avatarUrl: "",
       };
-
-      const page: IParticipant = {
-        id: String(chatId),
-        name: chat.type || "Telegram Chat",
-        avatarUrl:"",
-      };
-
       await updateConversation({
         customId,
         platform: "telegram",
         sender: user,
         text,
         timestamp,
-        participants: [user, page],
+        participants: [user],
       });
 
       if (process.env.NODE_ENV !== "production") {
         console.log("📥 Telegram Update:", JSON.stringify(update, null, 2));
       }
 
-      return res.status(200).json({ message: `Received message from ${username}`, chatId });
+      return res.status(200).json({ message: `Received message from ${username}`});
     } catch (err) {
       console.error("❌ Failed to process Telegram message:", err);
       return res.status(500).json({ error: "Internal server error" });
