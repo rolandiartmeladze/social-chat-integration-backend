@@ -3,6 +3,7 @@ import { Conversation } from "../models/Conversation";
 import { Message } from "../models/Message";
 import { splitParticipantsByRole } from "../utility/splitParticipantsByRole";
 import { getFacebookPageInfo } from "../services/facebook.service";
+import  TelegramService from "../services/telegramService";
 
 export const getAllConversations = async (req: Request, res: Response) => {
   try {
@@ -14,45 +15,70 @@ export const getAllConversations = async (req: Request, res: Response) => {
       })
       .lean();
 
-    const accessToken = process.env.FB_PAGE_ACCESS_TOKEN || "";
-    const { id: pageId } = await getFacebookPageInfo(accessToken);
+    const botId = (await TelegramService.getBotIdentity()).id;
+    const pageId = (await getFacebookPageInfo(process.env.FB_PAGE_ACCESS_TOKEN || "")).id;
 
-    const enrichedConvs = conversations.map((conv) => {
-      const { user, page } = splitParticipantsByRole(conv.participants, pageId);
-      return {
-        id: conv._id.toString(),
-        customId: conv.customId,
-        platform: conv.platform,
-        lastUpdated: conv.lastUpdated,
-        unreadCount: conv.unreadCount,
-        participants: { user, page },
-        lastMessage: conv.lastMessage,
-      };
-    });
+    const enrichedConvs = await Promise.all(
+      conversations.map(async (conv) => {
+        try {
+          let user, page;
 
-    res.json(enrichedConvs);
+          if (conv.platform === "telegram") {
+            ({ user, page } = splitParticipantsByRole(conv.participants, botId));
+          } else if (conv.platform === "messenger") {
+            ({ user, page } = splitParticipantsByRole(conv.participants, pageId));
+          } else {
+            return null;
+          }
+
+          return {
+            id: conv._id.toString(),
+            customId: conv.customId,
+            platform: conv.platform,
+            lastUpdated: conv.lastUpdated,
+            unreadCount: conv.unreadCount,
+            participants: { user, page },
+            lastMessage: conv.lastMessage || null,
+          };
+        } catch (err) {
+          console.error(`Failed to enrich conversation ${conv._id}`, err);
+          return null;
+        }
+      })
+    );
+
+    res.json(enrichedConvs.filter(Boolean)); // filter nulls
   } catch (err) {
-    console.error("Error fetching conversations", err);
+    console.error("Error fetching conversations:", err);
     res.status(500).json({ error: "Failed to fetch conversations" });
   }
 };
+
 export const getMessagesForConversation = async (req: Request, res: Response) => {
   const { conversationId } = req.params;
 
   try {
-    const conversation = await Conversation.findOne({ _id: conversationId }).lean();
-    if (!conversation) return res.sendStatus(404);
+    const conversation = await Conversation.findById(conversationId).lean();
+    if (!conversation) return res.status(404).json({ error: "Conversation not found" });
 
-    const { id: pageId } = await getFacebookPageInfo(process.env.FB_PAGE_ACCESS_TOKEN || "");
+    const botId = (await TelegramService.getBotIdentity()).id;
+    const pageId = (await getFacebookPageInfo(process.env.FB_PAGE_ACCESS_TOKEN || "")).id;
 
-    const { user, page } = splitParticipantsByRole(conversation.participants, pageId);
+    let user, page;
+    if (conversation.platform === "telegram") {
+      ({ user, page } = splitParticipantsByRole(conversation.participants, botId));
+    } else if (conversation.platform === "messenger") {
+      ({ user, page } = splitParticipantsByRole(conversation.participants, pageId));
+    } else {
+      return res.status(400).json({ error: "Unsupported platform" });
+    }
 
     const messages = await Message.find({ conversationId: conversation._id })
       .sort({ timestamp: -1 })
       .lean();
 
     res.json({
-      id: conversation.id,
+      id: conversation._id.toString(),
       platform: conversation.platform,
       lastUpdated: conversation.lastUpdated,
       unreadCount: conversation.unreadCount,
@@ -60,7 +86,8 @@ export const getMessagesForConversation = async (req: Request, res: Response) =>
       messages,
     });
   } catch (err) {
-    console.error("Error fetching messages", err);
+    console.error("Error fetching messages:", err);
     res.status(500).json({ error: "Failed to fetch messages" });
   }
 };
+
