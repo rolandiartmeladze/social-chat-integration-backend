@@ -7,8 +7,6 @@ import { getFacebookPageInfo } from "../services/facebook.service";
 
 dotenv.config();
 
-type Message = { sender: string; text: string; timestamp: string };
-
 export default class MessengerController {
 
   static verifyWebhook(req: Request, res: Response) {
