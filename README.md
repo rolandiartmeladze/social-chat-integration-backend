@@ -85,3 +85,11 @@ TELEGRAM_SECRET_TOKEN=your_webhook_secret_token
 * Uses secure webhook via `setWebhook` API
 * Your bot must call `TelegramService.setWebhook()` once
 * Incoming messages validated via `X-Telegram-Bot-Api-Secret-Token`
+
+---
+
+## 💡 Real-Time Updates with Socket.IO
+
+* `initSocket(httpServer)` initializes bidirectional communication
+* Each message update emits a `conversationUpdated` event to connected clients
+* Used in frontend to live-refresh conversation UI
