@@ -34,3 +34,11 @@ src/
 ├── types/                 # TypeScript interfaces and types
 └── .env                   # Secrets and API keys (excluded from Git)
 ```
+
+---
+
+## 🔐 Authentication Flow
+
+* Uses `passport-google-oauth20` to authenticate users
+* Stores session data in secure, SameSite `express-session` cookies
+* Auth state shared securely between backend and frontend (via HTTPS)
