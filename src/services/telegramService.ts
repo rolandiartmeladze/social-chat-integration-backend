@@ -7,6 +7,7 @@ dotenv.config();
 
 const TelegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API = `https://api.telegram.org/bot${TelegramBotToken}`;
+let botIdCache: string | null = null;
 
 export default class TelegramService {
   static async receiveWebhook(req: Request, res: Response): Promise<Response> {
@@ -33,15 +34,16 @@ export default class TelegramService {
     });
   }
 
-  static async getBotInfo(): Promise<any> {
-    try {
-      const response = await axios.get(`${TELEGRAM_API}/getMe`);
-      return response.data;
-    } catch (error: any) {
-      console.error("Failed to get bot info:", error.message);
-      throw new Error("Telegram bot not reachable");
+  static async getBotId(): Promise<string> {
+    if (botIdCache) return botIdCache;
+    const response = await axios.get(`${TELEGRAM_API}/getMe`);
+    if (response.data?.ok) {
+      botIdCache = String(response.data.result.id);
+      return botIdCache;
     }
+    throw new Error("Unable to get bot ID");
   }
+
 
   static async getConversations() {
     try {
