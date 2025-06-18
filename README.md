@@ -42,3 +42,30 @@ src/
 * Uses `passport-google-oauth20` to authenticate users
 * Stores session data in secure, SameSite `express-session` cookies
 * Auth state shared securely between backend and frontend (via HTTPS)
+
+---
+
+## ⚙️ Environment Configuration (`.env`)
+
+```dotenv
+# General
+PORT=5000
+BACKEND_URL=https://your-backend-url.com
+FRONTEND_URL=https://your-frontend-url.com
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_secret
+COOKIE_SECRET=your_session_cookie_secret
+
+# Messenger
+FB_PAGE_ACCESS_TOKEN=your_page_token
+FB_API_URL=https://graph.facebook.com/v16.0
+VERIFY_TOKEN=your_webhook_verify_token
+
+# Telegram
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_SECRET_TOKEN=your_webhook_secret_token
+```
+
+> ⚠️ Never commit this file – always use `.gitignore`
