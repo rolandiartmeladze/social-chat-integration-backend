@@ -7,7 +7,7 @@ dotenv.config();
 
 const TelegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API = `https://api.telegram.org/bot${TelegramBotToken}`;
-let botIdCache: string | null = null;
+let botInfoCache: { id: string; username: string } | null = null;
 
 export default class TelegramService {
   static async receiveWebhook(req: Request, res: Response): Promise<Response> {
@@ -34,14 +34,21 @@ export default class TelegramService {
     });
   }
 
-  static async getBotId(): Promise<string> {
-    if (botIdCache) return botIdCache;
+
+  static async getBotIdentity(): Promise<{ id: string; username: string }> {
+    if (botInfoCache) return botInfoCache;
+
     const response = await axios.get(`${TELEGRAM_API}/getMe`);
     if (response.data?.ok) {
-      botIdCache = String(response.data.result.id);
-      return botIdCache;
+      const result = response.data.result;
+      botInfoCache = {
+        id: String(result.id),
+        username: result.username || "TelegramBot",
+      };
+      return botInfoCache;
     }
-    throw new Error("Unable to get bot ID");
+
+    throw new Error("Unable to get bot identity from Telegram API");
   }
 
 
