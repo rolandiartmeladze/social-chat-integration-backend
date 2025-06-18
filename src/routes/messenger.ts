@@ -4,10 +4,8 @@ import MessengerController from "../controllers/messengerController";
 
 const router = Router();
 
-router.post('/send', MessengerController.sendMessageFromFrontend);
+router.post('/send', MessengerController.sendMessage);
 router.get("/webhook", MessengerController.verifyWebhook);
 router.post("/webhook", MessengerController.receiveWebhook);
-router.get("/conversations", MessengerController.getConversations);
-router.get("/conversation/:id", MessengerController.getChat);
 
 export default router;

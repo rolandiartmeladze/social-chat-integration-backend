@@ -68,15 +68,15 @@ export default class MessengerController {
   }
 
 
-  static async sendMessageFromFrontend(req: Request, res: Response) {
-    const { sender, text } = req.body;
-    if (!sender || !text) {
+  static async sendMessage(req: Request, res: Response) {
+    const { recipientId, text } = req.body;
+    if (!recipientId || !text) {
       return res
         .status(400)
         .json({ error: "Sender ID and text are required." });
     }
     try {
-      await MessengerService.sendMessage(sender, text);
+      await MessengerService.sendMessage(recipientId, text);
       res.status(200).json({ message: "Message sent successfully." });
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -84,30 +84,4 @@ export default class MessengerController {
     }
   }
 
-  static async getConversations(_req: Request, res: Response) {
-    try {
-      const conversations = await MessengerService.getConversations();
-      res.status(200).json({ conversations });
-    } catch (error: any) {
-      console.error("Error getting conversations:", error.message);
-      res.status(500).json({ error: "Failed to fetch conversations." });
-    }
-  }
-
-  static async getChat(req: Request, res: Response) {
-    try {
-      const conversationId = req.params.id;
-
-      if (!conversationId) {
-        return res.status(400).json({ error: "Conversation ID is required" });
-      }
-
-      const conversation = await MessengerService.getChat(conversationId);
-
-      return res.status(200).json({ conversation });
-    } catch (error: any) {
-      console.error("Error in Controller:", error.message);
-      return res.status(500).json({ error: "Failed to get messages from conversation" });
-    }
-  }
 }
