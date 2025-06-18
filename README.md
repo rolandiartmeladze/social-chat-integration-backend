@@ -69,3 +69,19 @@ TELEGRAM_SECRET_TOKEN=your_webhook_secret_token
 ```
 
 > ⚠️ Never commit this file – always use `.gitignore`
+
+---
+
+## 🌐 Webhook Configuration
+
+### Messenger
+
+* Facebook App → Webhooks → `https://<backend-url>/messenger/webhook`
+* Verify token must match `VERIFY_TOKEN`
+* Page access token must be generated and added to `.env`
+
+### Telegram
+
+* Uses secure webhook via `setWebhook` API
+* Your bot must call `TelegramService.setWebhook()` once
+* Incoming messages validated via `X-Telegram-Bot-Api-Secret-Token`
