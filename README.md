@@ -173,3 +173,11 @@ This project is licensed under the [MIT License](LICENSE)
 * [Telegram Bot API](https://core.telegram.org/bots/api)
 * [Passport.js](http://www.passportjs.org/)
 * [Socket.IO](https://socket.io/)
+
+---
+
+## 👨‍💻 Maintainer
+
+Built with ❤️ by **Roland Artmeladze**
+
+Feel free to contribute, suggest improvements, or raise issues!
