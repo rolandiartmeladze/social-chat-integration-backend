@@ -98,8 +98,8 @@ export default class TelegramController {
       conversation.lastMessage = newMessage._id;
       conversation.lastUpdated = new Date();
       await conversation.save();
-      io.to(customId).emit("conversationUpdated", {
-        customId,
+      io.emit("conversationUpdated", {
+        customId: conversation._id,
         platform: "telegram",
         text,
         timestamp: newMessage.timestamp,
