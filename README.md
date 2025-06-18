@@ -148,3 +148,13 @@ tsx src/index.ts
 * Webhook verification requires HTTPS or tunneling (use [ngrok](https://ngrok.com/))
 * Use MongoDB Atlas or local MongoDB
 * Log requests/errors using middleware or Winston (optional)
+
+---
+
+## 🤖 Powered Platforms
+
+| Platform  | Receive Messages | Send Messages | Webhook Status |
+| --------- | ---------------- | ------------- | -------------- |
+| Messenger | ✅ Yes            | ✅ Yes         | ✅ Verified     |
+| Telegram  | ✅ Yes            | ✅ Yes         | ✅ Verified     |
+| Instagram | ⏳ In Progress    | ⏳ Planned     | ⏳ Planned      |
