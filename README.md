@@ -164,3 +164,12 @@ tsx src/index.ts
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE)
+
+---
+
+## ✨ Acknowledgements
+
+* [Facebook Graph API](https://developers.facebook.com/docs/graph-api/)
+* [Telegram Bot API](https://core.telegram.org/bots/api)
+* [Passport.js](http://www.passportjs.org/)
+* [Socket.IO](https://socket.io/)
