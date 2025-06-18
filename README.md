@@ -16,3 +16,21 @@ This is the **backend server** for a multi-platform social chat integration syst
 * 🧵 Real-time updates with Socket.IO
 * 🔄 Conversation synchronization and unread count tracking
 * 📁 Modular structure with services, controllers, routes, and models
+
+---
+
+## 📁 Project Structure
+
+```bash
+src/
+├── auth/                  # Google OAuth configuration
+├── controllers/           # REST and webhook controllers for each platform
+├── models/                # Mongoose schemas for Conversation and Message
+├── routes/                # Express routers for auth, Messenger, Telegram...
+├── services/              # Logic for handling platform-specific APIs
+├── socket.ts              # Real-time Socket.IO setup
+├── index.ts               # Main server entry
+├── utility/               # Helpers: participant parsing, message formatting
+├── types/                 # TypeScript interfaces and types
+└── .env                   # Secrets and API keys (excluded from Git)
+```
