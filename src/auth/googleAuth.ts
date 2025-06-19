@@ -5,6 +5,7 @@
 import passport from "passport";
 import { Profile, Strategy as GoogleStrategy, VerifyCallback } from "passport-google-oauth20";
 import dotenv from "dotenv";
+import { User } from "../models/User";
 
 dotenv.config(); // .env ფაილიდან საჭირო პარამეტრების ჩატვირთვა
 
@@ -15,22 +16,38 @@ passport.use(new GoogleStrategy(
     clientID: process.env.GOOGLE_CLIENT_ID!, // [REQUIRED] Google OAuth client ID
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!, // [REQUIRED] Google OAuth client secret
     callbackURL: `${process.env.BACKEND_URL}/auth/google/callback` // [REQUIRED] Callback URL Google OAuth-ისთვის
-  },
-  (
+  }, async (
     accessToken: string,
     refreshToken: string,
     profile: Profile,
     done: VerifyCallback
   ) => {
-    // [VERIFY FUNCTION]
-    // ამ ფუნქციაში შეგიძლიათ მოახდინოთ:
-    // - მომხმარებლის მონაცემების შენახვა ბაზაში
-    // - არსებული მომხმარებლის მოძებნა
-    // - მომხმარებლის session ინფორმაციის გადაცემა
+  // [VERIFY FUNCTION]
+  // ამ ფუნქციაში შეგიძლიათ მოახდინოთ:
+  // - მომხმარებლის მონაცემების შენახვა ბაზაში
+  // - არსებული მომხმარებლის მოძებნა
+  // - მომხმარებლის session ინფორმაციის გადაცემა
 
-    // ამჟამად პირდაპირ ვაბრუნებთ პროფილს (არა უსაფრთხო პროდაქშენისთვის!)
-    return done(null, profile);
+  // ამჟამად პირდაპირ ვაბრუნებთ პროფილს (არა უსაფრთხო პროდაქშენისთვის!)
+  try {
+
+    let user = await User.findOne({ customId: profile.id });
+
+    if(!user) { 
+      user = await User.create({
+        customId: profile.id,
+        email: profile.emails?.[0].value,
+        name: profile.displayName,
+        avatarUrl: profile.photos?.[0].value
+      });
+    }
+    return done(null, user);
+
+  } catch (error) {
+    done(Error);
   }
+
+}
 ));
 
 // [SESSION MANAGEMENT]
