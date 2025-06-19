@@ -4,12 +4,16 @@ import { Message } from "../models/Message";
 import { splitParticipantsByRole } from "../util/splitParticipantsByRole";
 import { getFacebookPageInfo } from "../services/facebook.service";
 import TelegramService from "../services/telegramService";
+import { IUser } from "../models/User";
 
 // [GET] /conversations
 // აბრუნებს ყველა conversation-ს, მათ შორის enriched ვერსიას მომხმარებლის და ბოტის/გვერდის გაყოფილი როლებით
 export const getAllConversations = async (req: Request, res: Response) => {
   try {
     // [1] წამოიღე ყველა conversation, დაასორტირე ბოლოს განახლების მიხედვით
+
+    const user = req.user as IUser;
+    console.log(user?.role)
     const conversations = await Conversation.find()
       .sort({ lastUpdated: -1 })
       .populate({
