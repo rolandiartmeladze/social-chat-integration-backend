@@ -13,7 +13,10 @@ export const getAllConversations = async (req: Request, res: Response) => {
     // [1] წამოიღე ყველა conversation, დაასორტირე ბოლოს განახლების მიხედვით
 
     const user = req.user as IUser;
-    console.log(user?.role)
+    if (user.role !== "admin") {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     const conversations = await Conversation.find()
       .sort({ lastUpdated: -1 })
       .populate({
