@@ -1,6 +1,7 @@
 import express from "express";
 import passport from "passport";
 import dotenv from "dotenv";
+import { isAuthenticated } from "../middlewares/isAuthenticated";
 
 
 const router = express.Router();
@@ -15,15 +16,12 @@ router.get('/google/callback',
     session: true
   }),
   (req, res) => {
-    res.redirect(`${process.env.FRONTEND_URL}/user/messages`);
+    res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
   }
 );
 
-router.get('/protected', (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-  res.json( req.user );
+router.get("/protected", isAuthenticated, (req, res) => {
+  res.json({ message: "This is protected data", user: req.user });
 });
 
 router.get('/logout', (req, res) => {
