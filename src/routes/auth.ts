@@ -22,7 +22,7 @@ router.get('/google/callback',
 
 router.get("/protected", isAuthenticated, (req, res) => {
   const user = req.user;
-  res.json({ message: "This is protected data", user});
+  res.json(user);
 });
 
 router.get('/logout', (req, res) => {
