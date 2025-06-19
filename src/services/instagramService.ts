@@ -1,8 +1,8 @@
 import axios from "axios";
 import { User, Conversation, Message } from "../types/types";
-import { getFacebookPageIdFromInstagramAccount } from "../utility/getFacebookPageIdFromInstagramAccount";
-import { getParticipants } from "../utility/getParticipants";
-import { getMessage } from "../utility/getMessage";
+import { getFacebookPageIdFromInstagramAccount } from "../util/getFacebookPageIdFromInstagramAccount";
+import { getParticipants } from "../util/getParticipants";
+import { getMessage } from "../util/getMessage";
 
 const PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
 const FB_API_URL =

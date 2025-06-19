@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Conversation } from "../models/Conversation";
 import { Message } from "../models/Message";
-import { splitParticipantsByRole } from "../utility/splitParticipantsByRole";
+import { splitParticipantsByRole } from "../util/splitParticipantsByRole";
 import { getFacebookPageInfo } from "../services/facebook.service";
 import TelegramService from "../services/telegramService";
 

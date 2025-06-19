@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import MessengerService from "../services/messengerService";
-import { getParticipants } from "../utility/getParticipants";
+import { getParticipants } from "../util/getParticipants";
 import { updateConversation } from "../services/conversationService";
 import dotenv from "dotenv";
 import { getFacebookPageInfo } from "../services/facebook.service";

@@ -16,7 +16,7 @@ import conversations from "./routes/conversations"
 import passport from "passport";
 import session from "express-session";
 import authRouter from "./routes/auth";
-import { connectDB } from './utility/db';
+import { connectDB } from './util/db';
 
 dotenv.config(); // [REVIEW] .env ფაილიდან კონფიგურაციის ჩატვირთვა საუკეთესო პრაქტიკაა.
 
