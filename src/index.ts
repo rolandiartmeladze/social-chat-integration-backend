@@ -68,16 +68,6 @@ httpServer.listen(process.env.PORT || 3001, () =>
   });
 })(); // [REVIEW] root როუტი ინიციალიზაციის შემდეგ ინახება, რაც შეიძლება გაუგებარი იყოს თუ connectDB ვერ შესრულდა.
 
-app.get('/test-conversations', async (req, res) => {
-  try {
-    const conversations = await Conversation.find({});
-    res.json(conversations);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch conversations' });
-  }
-}); // [REVIEW] ტესტირების როუტი, რომელიც ყველა conversation-ს აბრუნებს. რეკომენდირებულია dev-only გარემოში იყოს ხელმისაწვდომი.
-
-
 // [SUMMARY]
 // საერთო ჯამში, არქიტექტურა სწორია: მოდულური სტრუქტურა, უსაფრთხოების პარამეტრები, .env გამოყენება და სერვისების ინიციალიზაცია. 
 // რეკომენდაცია: 
