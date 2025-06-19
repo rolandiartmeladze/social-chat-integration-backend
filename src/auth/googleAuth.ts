@@ -33,7 +33,7 @@ passport.use(new GoogleStrategy(
 
     let user = await User.findOne({ customId: profile.id });
 
-    if(!user) { 
+    if (!user) {
       user = await User.create({
         customId: profile.id,
         email: profile.emails?.[0].value,
@@ -54,14 +54,18 @@ passport.use(new GoogleStrategy(
 
 // [SERIALIZE]
 // როდესაც ავტორიზაცია წარმატებით სრულდება, ეს ფუნქცია იძახება
-passport.serializeUser((user: Express.User, done) => {
+passport.serializeUser((user: any, done) => {
   // აქ შეგვიძლია შევინახოთ მხოლოდ user.id, ან სხვა იდენტიფიკატორი session-ში
-  done(null, user);
+  done(null, user._id); // მხოლოდ user._id ინახება session-ში
 });
 
 // [DESERIALIZE]
 // ყოველი მოთხოვნის დროს, ეს ფუნქცია იძახება session-იდან მომხმარებლის ინფორმაციის ამოსაღებად
-passport.deserializeUser((user: Express.User, done) => {
-  // ჩვეულებრივ ხდება ბაზიდან მოძებნა user.id-ით და მისი დატვირთვა
-  done(null, user);
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user || false); // თუ არ მოიძებნა — false
+  } catch (err) {
+    done(err, false);
+  };
 });
