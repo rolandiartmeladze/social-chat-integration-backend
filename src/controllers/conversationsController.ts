@@ -1,15 +1,22 @@
 import { Request, Response } from "express";
 import { Conversation } from "../models/Conversation";
 import { Message } from "../models/Message";
-import { splitParticipantsByRole } from "../utility/splitParticipantsByRole";
+import { splitParticipantsByRole } from "../util/splitParticipantsByRole";
 import { getFacebookPageInfo } from "../services/facebook.service";
 import TelegramService from "../services/telegramService";
+import { IUser } from "../models/User";
 
 // [GET] /conversations
 // აბრუნებს ყველა conversation-ს, მათ შორის enriched ვერსიას მომხმარებლის და ბოტის/გვერდის გაყოფილი როლებით
 export const getAllConversations = async (req: Request, res: Response) => {
   try {
     // [1] წამოიღე ყველა conversation, დაასორტირე ბოლოს განახლების მიხედვით
+
+    const user = req.user as IUser;
+    if (user.role !== "admin") {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     const conversations = await Conversation.find()
       .sort({ lastUpdated: -1 })
       .populate({

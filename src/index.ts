@@ -4,7 +4,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import bodyParser from "body-parser";
+import MongoStore from "connect-mongo";
 import './auth/googleAuth'; // [REVIEW] Google OAuth-ის კონფიგურაცია, ინიციალიზაცია მოდულურად გამოყოფილია, რაც კარგია.
 
 import { createServer } from "http";
@@ -16,8 +16,8 @@ import conversations from "./routes/conversations"
 import passport from "passport";
 import session from "express-session";
 import authRouter from "./routes/auth";
-import { connectDB } from './utility/db';
-import { Conversation } from './models/Conversation';
+import { connectDB } from './util/db';
+import cookieParser from "cookie-parser";
 
 dotenv.config(); // [REVIEW] .env ფაილიდან კონფიგურაციის ჩატვირთვა საუკეთესო პრაქტიკაა.
 
@@ -27,12 +27,12 @@ const httpServer = createServer(app);
 initSocket(httpServer); // [REVIEW] Socket.io-ს ინიციალიზაცია ცალკე ფუნქციაშია, რაც არქიტექტურულად გამართულია.
 
 app.use(express.json());
-app.use(bodyParser.json()); // [REVIEW] ორივე json parser-ის გამოყენება შეიძლება ზედმეტია, express უკვე შეიცავს body-parser-ს.
 
 app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true,
 })); // [REVIEW] CORS-ის კონფიგურაცია დინამიურად .env-დან, რაც უსაფრთხოების და მოქნილობისთვის კარგია.
+app.use(cookieParser());
 
 app.set("trust proxy", 1); // [REVIEW] აუცილებელია თუ იყენებ პროქსის (მაგ. Heroku, Vercel).
 
@@ -40,10 +40,16 @@ app.use(session({
   secret: process.env.COOKIE_SECRET as string,
   resave: false,
   saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    collectionName: "sessions",
+    ttl:  7 * 24 * 60 * 60 // 7 დღე
+  }),
   cookie: {
     secure: true, // [REVIEW] მხოლოდ HTTPS-ზე მუშაობს, dev გარემოში შეიძლება პრობლემები გამოიწვიოს.
     httpOnly: true,
-    sameSite: 'none'
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000
   }
 })); // [REVIEW] session-ის კონფიგურაცია უსაფრთხოების საუკეთესო პრაქტიკებს მიყვება.
 
@@ -67,16 +73,6 @@ httpServer.listen(process.env.PORT || 3001, () =>
     res.send("გამარჯობა  მოგესალმებით Backend სერვერიდან რომელიც აბრუნებს შეტყობინებებს და მესენჯერ, ინსტაგრამ, ტელეგრამ  ჩათებიდან და საშუალებას აძლევს მომხმარებელს გაგზავნოს შესაბამისი მოთხოვნა გვერდზე --  TypeScript + Node.js app.");
   });
 })(); // [REVIEW] root როუტი ინიციალიზაციის შემდეგ ინახება, რაც შეიძლება გაუგებარი იყოს თუ connectDB ვერ შესრულდა.
-
-app.get('/test-conversations', async (req, res) => {
-  try {
-    const conversations = await Conversation.find({});
-    res.json(conversations);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch conversations' });
-  }
-}); // [REVIEW] ტესტირების როუტი, რომელიც ყველა conversation-ს აბრუნებს. რეკომენდირებულია dev-only გარემოში იყოს ხელმისაწვდომი.
-
 
 // [SUMMARY]
 // საერთო ჯამში, არქიტექტურა სწორია: მოდულური სტრუქტურა, უსაფრთხოების პარამეტრები, .env გამოყენება და სერვისების ინიციალიზაცია. 
