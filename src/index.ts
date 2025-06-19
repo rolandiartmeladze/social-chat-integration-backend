@@ -17,6 +17,7 @@ import passport from "passport";
 import session from "express-session";
 import authRouter from "./routes/auth";
 import { connectDB } from './util/db';
+import cookieParser from "cookie-parser";
 
 dotenv.config(); // [REVIEW] .env ფაილიდან კონფიგურაციის ჩატვირთვა საუკეთესო პრაქტიკაა.
 
@@ -31,6 +32,7 @@ app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true,
 })); // [REVIEW] CORS-ის კონფიგურაცია დინამიურად .env-დან, რაც უსაფრთხოების და მოქნილობისთვის კარგია.
+app.use(cookieParser());
 
 app.set("trust proxy", 1); // [REVIEW] აუცილებელია თუ იყენებ პროქსის (მაგ. Heroku, Vercel).
 
