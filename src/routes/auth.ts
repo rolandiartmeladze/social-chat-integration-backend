@@ -21,15 +21,22 @@ router.get('/google/callback',
 );
 
 router.get("/protected", isAuthenticated, (req, res) => {
-  res.json({ message: "This is protected data", user: req.user });
+  const user = req.user;
+  res.json({ message: "This is protected data", user});
 });
 
 router.get('/logout', (req, res) => {
   req.logout((err) => {
     if (err) return res.status(500).json({ error: 'Logout failed' });
-    res.clearCookie('connect.sid');
-    res.redirect(`${process.env.FRONTEND_URL}/auth/sign-in`);
+
+    req.session.destroy((err) => {
+      if (err) return res.status(500).json({ error: 'Failed to destroy session' });
+
+      res.clearCookie('connect.sid');
+      res.redirect(`${process.env.FRONTEND_URL}`);
+    });
   });
 });
+
 
 export default router;
