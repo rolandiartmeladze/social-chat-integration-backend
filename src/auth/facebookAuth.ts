@@ -1,7 +1,7 @@
 import passport from "passport";
 import { Strategy as FacebookStrategy, Profile } from "passport-facebook";
 import dotenv from "dotenv";
-import { User } from "../models/User";
+import { upsertOAuthUser } from "../services/userService";
 
 dotenv.config();
 
@@ -18,19 +18,15 @@ passport.use(new FacebookStrategy(
     profile: Profile,
     done: (error: any, user?: any) => void
   ) => {
+    
     try {
-      let user = await User.findOne({ customId: profile.id });
-
-      if (!user) {
-        user = await User.create({
-          customId: profile.id,
+      const user = await upsertOAuthUser({
+        customId: profile.id,
           name: `${profile.name?.givenName || ""} ${profile.name?.familyName || ""}`,
-          email: profile.emails?.[0]?.value,
+          email: profile.emails?.[0]?.value || "",
           avatarUrl: profile.photos?.[0]?.value,
           provider: "facebook"
-        });
-      }
-
+      })
       return done(null, user);
     } catch (error) {
       return done(error, null);
