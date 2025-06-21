@@ -2,7 +2,6 @@ import passport from "passport";
 import { User } from "../models/User";
 
 passport.serializeUser((user: any, done) => {
-  console.log(user);
   done(null, user._id.toString());
 });
 
