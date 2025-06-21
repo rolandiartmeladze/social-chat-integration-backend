@@ -64,7 +64,7 @@ app.use('/telegram', telegramRouter);
 app.use('/conversations', conversations);
 app.use('/auth', authRouter); // [REVIEW] როუტერები მოდულებადაა გამოყოფილი, რაც კოდის სტრუქტურას აუმჯობესებს.
 
-httpServer.listen(process.env.PORT || 3001, () =>
+httpServer.listen(PORT , () =>
   console.log("Server listening")
 ); // [REVIEW] პორტის არჩევა .env-დან მოქნილი და სწორი მიდგომაა.
 
