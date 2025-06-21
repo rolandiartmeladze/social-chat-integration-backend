@@ -1,11 +1,18 @@
 import passport from "passport";
 import { Strategy as FacebookStrategy } from "passport-facebook";
+import { User } from "../models/User";
 
 passport.serializeUser((user: any, done) => {
-  done(null, user);
+  done(null, user._id);
 });
-passport.deserializeUser((obj: any, done) => {
-  done(null, obj);
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user || false);
+  } catch (err) {
+    done(err, false);
+  }
 });
 
 passport.use(new FacebookStrategy(
