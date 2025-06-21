@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import MongoStore from "connect-mongo";
 import './auth/googleAuth'; // [REVIEW] Google OAuth-ის კონფიგურაცია, ინიციალიზაცია მოდულურად გამოყოფილია, რაც კარგია.
+import './auth/facebookAuth'; 
 
 import { createServer } from "http";
 import { initSocket } from "./socket";
