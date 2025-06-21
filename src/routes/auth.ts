@@ -34,15 +34,7 @@ router.get("/facebook/callback",
   }
 );
 
-router.get("/me", (req, res) => {
-  if (req.isAuthenticated()) {
-    res.json(req.user);
-  } else {
-    res.status(401).json({ error: "Not authenticated" });
-  }
-});
-
-router.get("/protected", isAuthenticated, (req, res) => {
+router.get("/me", isAuthenticated, (req, res) => {
   const user = req.user;
   res.json(user);
 });
