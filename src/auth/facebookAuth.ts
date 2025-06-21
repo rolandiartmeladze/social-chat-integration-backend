@@ -23,7 +23,7 @@ passport.use(new FacebookStrategy(
       const user = await upsertOAuthUser({
         customId: profile.id,
           name: `${profile.name?.givenName || ""} ${profile.name?.familyName || ""}`,
-          email: profile.emails?.[0]?.value || "",
+          email: profile.emails?.[0]?.value || `${profile.id}@facebook.com`,
           avatarUrl: profile.photos?.[0]?.value,
           provider: "facebook"
       })
