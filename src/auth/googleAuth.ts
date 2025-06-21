@@ -49,23 +49,3 @@ passport.use(new GoogleStrategy(
 
 }
 ));
-
-// [SESSION MANAGEMENT]
-
-// [SERIALIZE]
-// როდესაც ავტორიზაცია წარმატებით სრულდება, ეს ფუნქცია იძახება
-passport.serializeUser((user: any, done) => {
-  // აქ შეგვიძლია შევინახოთ მხოლოდ user.id, ან სხვა იდენტიფიკატორი session-ში
-  done(null, user._id); // მხოლოდ user._id ინახება session-ში
-});
-
-// [DESERIALIZE]
-// ყოველი მოთხოვნის დროს, ეს ფუნქცია იძახება session-იდან მომხმარებლის ინფორმაციის ამოსაღებად
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user || false); // თუ არ მოიძებნა — false
-  } catch (err) {
-    done(err, false);
-  };
-});
