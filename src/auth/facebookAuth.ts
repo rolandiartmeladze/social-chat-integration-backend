@@ -1,7 +1,7 @@
 import passport from "passport";
 import { Strategy as FacebookStrategy, Profile } from "passport-facebook";
 import dotenv from "dotenv";
-import { upsertOAuthUser } from "../services/userService";
+import { User } from "../models/User";
 
 dotenv.config();
 
@@ -12,17 +12,28 @@ passport.use(new FacebookStrategy(
     callbackURL: process.env.FACEBOOK_CALLBACK_URL!,
     profileFields: ['id', 'emails', 'name', 'picture.type(large)'],
   },
-  async (accessToken, refreshToken, profile, done) => {
+  async (
+    accessToken: string,
+    refreshToken: string,
+    profile: Profile,
+    done: (error: any, user?: any) => void
+  ) => {
     try {
-      const user = await upsertOAuthUser({
-        customId: profile.id,
-        name: `${profile.name?.givenName || ""} ${profile.name?.familyName || ""}`,
-        email: profile.emails?.[0]?.value || "",
-        avatarUrl: profile.photos?.[0]?.value,
-        provider: "facebook"
-      });
+      let user = await User.findOne({ customId: profile.id });
+
+      if (!user) {
+        user = await User.create({
+          customId: profile.id,
+          name: `${profile.name?.givenName || ""} ${profile.name?.familyName || ""}`,
+          email: profile.emails?.[0]?.value,
+          avatarUrl: profile.photos?.[0]?.value,
+          provider: "facebook"
+        });
+      }
+
       return done(null, user);
-    } catch (err) {
-      return done(err, null);
+    } catch (error) {
+      return done(error, null);
     }
-  }));
+  }
+));
