@@ -3,9 +3,9 @@
 // გამოიყენება მომხმარებლის იდენტიფიკაციისთვის Google ანგარიშის მეშვეობით.
 
 import passport from "passport";
-import { Profile, Strategy as GoogleStrategy, VerifyCallback } from "passport-google-oauth20";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import dotenv from "dotenv";
-import { User } from "../models/User";
+import { upsertOAuthUser } from "../services/userService";
 
 dotenv.config(); // .env ფაილიდან საჭირო პარამეტრების ჩატვირთვა
 
@@ -16,56 +16,17 @@ passport.use(new GoogleStrategy(
     clientID: process.env.GOOGLE_CLIENT_ID!, // [REQUIRED] Google OAuth client ID
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!, // [REQUIRED] Google OAuth client secret
     callbackURL: `${process.env.BACKEND_URL}/auth/google/callback` // [REQUIRED] Callback URL Google OAuth-ისთვის
-  }, async (
-    accessToken: string,
-    refreshToken: string,
-    profile: Profile,
-    done: VerifyCallback
-  ) => {
-  // [VERIFY FUNCTION]
-  // ამ ფუნქციაში შეგიძლიათ მოახდინოთ:
-  // - მომხმარებლის მონაცემების შენახვა ბაზაში
-  // - არსებული მომხმარებლის მოძებნა
-  // - მომხმარებლის session ინფორმაციის გადაცემა
-
-  // ამჟამად პირდაპირ ვაბრუნებთ პროფილს (არა უსაფრთხო პროდაქშენისთვის!)
-  try {
-
-    let user = await User.findOne({ customId: profile.id });
-
-    if (!user) {
-      user = await User.create({
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      const user = await upsertOAuthUser({
         customId: profile.id,
-        email: profile.emails?.[0].value,
+        email: profile.emails?.[0]?.value || "",
         name: profile.displayName,
-        avatarUrl: profile.photos?.[0].value
+        avatarUrl: profile.photos?.[0]?.value,
+        provider: "google"
       });
+      return done(null, user);
+    } catch (err) {
+      return done(err);
     }
-    return done(null, user);
-
-  } catch (error) {
-    done(Error);
-  }
-
-}
-));
-
-// [SESSION MANAGEMENT]
-
-// [SERIALIZE]
-// როდესაც ავტორიზაცია წარმატებით სრულდება, ეს ფუნქცია იძახება
-passport.serializeUser((user: any, done) => {
-  // აქ შეგვიძლია შევინახოთ მხოლოდ user.id, ან სხვა იდენტიფიკატორი session-ში
-  done(null, user._id); // მხოლოდ user._id ინახება session-ში
-});
-
-// [DESERIALIZE]
-// ყოველი მოთხოვნის დროს, ეს ფუნქცია იძახება session-იდან მომხმარებლის ინფორმაციის ამოსაღებად
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user || false); // თუ არ მოიძებნა — false
-  } catch (err) {
-    done(err, false);
-  };
-});
+  }));

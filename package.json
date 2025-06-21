@@ -23,6 +23,7 @@
     "express-session": "^1.18.1",
     "mongoose": "^8.15.2",
     "passport": "^0.7.0",
+    "passport-facebook": "^3.0.0",
     "passport-google-oauth20": "^2.0.0",
     "request": "^2.88.2",
     "socket.io": "^4.8.1"
@@ -35,6 +36,7 @@
     "@types/express-session": "^1.18.2",
     "@types/node": "v22.13.0",
     "@types/passport": "^1.0.17",
+    "@types/passport-facebook": "^3.0.3",
     "@types/passport-google-oauth20": "^2.0.16",
     "@types/request": "^2.48.12",
     "@types/socket.io": "^3.0.1",

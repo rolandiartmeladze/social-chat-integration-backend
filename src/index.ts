@@ -6,6 +6,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import MongoStore from "connect-mongo";
 import './auth/googleAuth'; // [REVIEW] Google OAuth-ის კონფიგურაცია, ინიციალიზაცია მოდულურად გამოყოფილია, რაც კარგია.
+import './auth/facebookAuth'; 
+import './auth/session';
 
 import { createServer } from "http";
 import { initSocket } from "./socket";
@@ -62,7 +64,7 @@ app.use('/telegram', telegramRouter);
 app.use('/conversations', conversations);
 app.use('/auth', authRouter); // [REVIEW] როუტერები მოდულებადაა გამოყოფილი, რაც კოდის სტრუქტურას აუმჯობესებს.
 
-httpServer.listen(process.env.PORT || 3001, () =>
+httpServer.listen(PORT , () =>
   console.log("Server listening")
 ); // [REVIEW] პორტის არჩევა .env-დან მოქნილი და სწორი მიდგომაა.
 
