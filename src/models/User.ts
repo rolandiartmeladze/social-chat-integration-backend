@@ -24,6 +24,4 @@ const UserSchema = new Schema<IUser>({
   lastLogin: { type: Date, default: Date.now },
 }, { timestamps: true });
 
-UserSchema.index({ email: 1 });
-
 export const User = model<IUser>("User", UserSchema);
