@@ -20,6 +20,28 @@ router.get('/google/callback',
   }
 );
 
+router.get("/facebook", passport.authenticate("facebook", {
+  scope: ["email"]
+}));
+
+router.get("/facebook/callback",
+  passport.authenticate("facebook", {
+    failureRedirect: `${process.env.FRONTEND_URL}/auth/sign-in`,
+    session: true,
+  }),
+  (req, res) => {
+    res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+  }
+);
+
+router.get("/me", (req, res) => {
+  if (req.isAuthenticated()) {
+    res.json(req.user);
+  } else {
+    res.status(401).json({ error: "Not authenticated" });
+  }
+});
+
 router.get("/protected", isAuthenticated, (req, res) => {
   const user = req.user;
   res.json(user);
